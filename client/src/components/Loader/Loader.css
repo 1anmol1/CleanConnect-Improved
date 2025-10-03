@@ -1,0 +1,64 @@
+.skeleton-container {
+  padding: 40px 20px;
+  width: 100%;
+}
+
+.skeleton {
+  background-color: #e9ecef; /* A light, neutral gray */
+  border-radius: var(--border-radius);
+  position: relative;
+  overflow: hidden; /* This is essential for the shimmer effect */
+}
+
+/* This pseudo-element creates the shimmer animation */
+.skeleton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.6), 
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* --- Layout of the skeleton elements --- */
+
+.skeleton-header {
+  height: 220px; /* Matches the typical height of your page headers */
+  margin-bottom: 40px;
+}
+
+.skeleton-content-main {
+    height: 400px;
+    margin-bottom: 30px;
+}
+
+.skeleton-content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+.skeleton-content-side {
+    height: 150px;
+}
+
+.skeleton-loading-text {
+  margin-top: 40px;
+  text-align: center;
+  font-size: 1.1rem;
+  color: var(--text-color-light);
+  font-weight: 500;
+}

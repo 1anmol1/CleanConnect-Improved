@@ -1,0 +1,98 @@
+.worker-management-page { 
+  padding: 40px 20px; 
+}
+
+/* --- UPDATED: Page Header with Hero Image --- */
+.worker-management-page .page-header {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  padding: 60px 40px;
+  border-radius: var(--border-radius);
+  background-size: cover;
+  background-position: center;
+  color: white;
+  overflow: hidden;
+}
+
+.worker-management-page .page-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(20, 20, 20, 0.8), rgba(60, 60, 60, 0.6));
+  z-index: 1;
+}
+
+.worker-management-page .page-header h1,
+.worker-management-page .page-header .btn {
+  position: relative;
+  z-index: 2;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.worker-management-page .page-header h1 {
+  margin: 0;
+}
+
+/* --- Worker Table Styles --- */
+.worker-table-container { 
+  padding: 0;
+  overflow-x: auto; /* Ensures table is responsive on small screens */
+}
+
+.worker-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.worker-table th, .worker-table td {
+  padding: 15px 20px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap; /* Prevents text wrapping in table cells */
+}
+
+.worker-table thead {
+  background-color: var(--surface-color);
+}
+
+.worker-table th {
+  font-weight: 600;
+  color: var(--text-color-light);
+}
+
+.status-badge {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-on-duty { background-color: #d4edda; color: #155724; }
+.status-off-duty { background-color: #f8d7da; color: #721c24; }
+
+.btn-action {
+  background: none;
+  border: 1px solid var(--border-color);
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-action:hover {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+}

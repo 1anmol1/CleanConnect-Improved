@@ -1,0 +1,165 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: var(--background-color);
+  padding: 30px;
+  border-radius: var(--border-radius);
+  max-width: 600px;
+  width: 90%;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  position: relative;
+  animation: fadeInScale 0.3s ease-out forwards;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: var(--text-color);
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-color-light);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  color: var(--danger-color);
+}
+
+.modal-body {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-color);
+}
+
+.modal-body p {
+  margin-bottom: 10px;
+}
+
+.modal-body p strong {
+  color: var(--text-color);
+}
+
+.image-preview {
+  margin: 20px 0;
+  text-align: center;
+  background-color: var(--surface-color);
+  padding: 15px;
+  border-radius: var(--border-radius);
+}
+
+.image-preview h3 {
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: var(--text-color-light);
+}
+
+.image-preview img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+}
+
+/* NEW: Style for the "View Full Proof" button */
+.view-proof-btn {
+    margin-top: 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 15px;
+    font-size: 0.95rem;
+}
+
+.verification-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 30px;
+  flex-wrap: wrap; /* Added for mobile responsiveness */
+}
+
+.verification-actions button {
+  padding: 12px 20px;
+  font-size: 1.1rem;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+/* Base button styles (assuming these are in a global style or a common variables file) */
+/* If not, ensure these are defined, e.g.: */
+/*
+.btn {
+  border: none;
+  font-weight: 600;
+}
+.btn-primary { background-color: var(--primary-color); color: white; }
+.btn-primary:hover { opacity: 0.9; }
+.btn-danger { background-color: var(--danger-color); color: white; }
+.btn-danger:hover { opacity: 0.9; }
+*/
+
+/* --- NEW: btn-info styles --- */
+.btn-info {
+  background-color: #17a2b8; /* A shade of light blue/cyan */
+  color: white;
+  border: 1px solid #17a2b8;
+}
+
+.btn-info:hover {
+  background-color: #138496;
+  border-color: #117a8b;
+}
+
+
+/* Animations */
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.95) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .modal-content {
+    padding: 20px;
+  }
+  .modal-header h2 {
+    font-size: 1.5rem;
+  }
+  .verification-actions button {
+    width: 100%; /* Full width buttons on small screens */
+    font-size: 1rem;
+    padding: 10px 15px;
+  }
+}

@@ -1,0 +1,97 @@
+.rewards-page { 
+    padding: 40px 20px; 
+}
+.page-header {
+  position: relative;
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 60px 20px;
+  border-radius: var(--border-radius);
+  background-size: cover;
+  background-position: center;
+  color: white;
+  overflow: hidden;
+}
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(45deg, rgba(0, 50, 100, 0.7), rgba(0, 123, 255, 0.5));
+  z-index: 1;
+}
+.page-header h1, .page-header p {
+  position: relative;
+  z-index: 2;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+}
+.page-header h1 { color: white; }
+
+.rewards-grid { 
+    display: grid; 
+    grid-template-columns: 1fr 2fr; 
+    gap: 30px; 
+}
+.points-card { 
+    text-align: center; 
+}
+.card-icon { 
+    font-size: 3rem; 
+    color: var(--primary-color); 
+    margin-bottom: 15px; 
+}
+.leaderboard-list { 
+    list-style: none;
+    padding: 0; 
+}
+.leaderboard-list li { 
+    display: flex; 
+    justify-content: space-between; 
+    padding: 15px; 
+    border-radius: 5px; 
+    margin-bottom: 10px; 
+}
+.leaderboard-list li:nth-child(odd) { 
+    background-color: var(--surface-color); 
+}
+.leaderboard-list .current-user { 
+    background-color: #e6f2ff; 
+    font-weight: 600; 
+    border-left: 3px solid var(--primary-color);
+}
+.leaderboard-coins {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+/* --- NEW: CleanCoin Styles --- */
+.cleancoin-icon {
+    color: #FFC107; /* Golden yellow */
+    font-size: 3.5rem;
+}
+.cleancoin-total {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin: 10px 0 20px;
+    color: #fac30d; /* A deeper gold */
+    /* background: -webkit-linear-gradient(45deg, #FFC107, #D4AF37); */
+    /* -webkit-text-fill-color: transparent; */
+}
+.btn-redeem-gold {
+    background: linear-gradient(45deg, #FFC107, #F57F17);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 50px;
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+    transition: all 0.3s ease;
+}
+.btn-redeem-gold:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.6);
+}
+
+@media(max-width: 768px) { 
+    .rewards-grid { grid-template-columns: 1fr; } 
+}

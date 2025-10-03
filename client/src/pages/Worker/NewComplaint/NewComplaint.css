@@ -1,0 +1,95 @@
+/* EDITED: Simplified the page styling */
+.new-complaint-page {
+  padding: 40px 20px;
+  background-color: var(--surface-color);
+}
+
+/* Header styles remain the same, but now respect the parent container */
+.page-header {
+  position: relative;
+  text-align: center;
+  margin-bottom: 40px; /* Spacing between header and form */
+  padding: 60px 20px;
+  border-radius: var(--border-radius);
+  background-size: cover;
+  background-position: center;
+  color: white;
+  overflow: hidden;
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(45deg, rgba(20, 20, 20, 0.8), rgba(60, 60, 60, 0.6)); /* Darker, neutral overlay for worker pages */
+  z-index: 1;
+}
+
+.page-header h1,
+.page-header p {
+  position: relative;
+  z-index: 2;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.page-header h1 {
+    color: white;
+    font-size: 2.5rem;
+}
+
+/* EDITED: Simplified form card styles */
+.form-card-container {
+  background: var(--white-color);
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.07);
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto; /* Center the form card */
+  animation: slideUp 0.6s ease-out;
+}
+
+.styled-form .form-group {
+  margin-bottom: 20px;
+}
+
+.styled-form .form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #555;
+}
+
+.styled-form .form-group input[type="text"],
+.styled-form .form-group input[type="file"],
+.styled-form .form-group select,
+.styled-form .form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.styled-form .form-group input:focus,
+.styled-form .form-group select:focus,
+.styled-form .form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 15px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

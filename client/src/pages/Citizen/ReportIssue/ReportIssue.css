@@ -1,0 +1,119 @@
+/* EDITED: Simplified the page styling */
+.report-issue-page {
+  padding: 40px 20px;
+}
+
+/* Header styles remain the same, but now respect the parent container */
+.page-header {
+  position: relative;
+  text-align: center;
+  margin-bottom: 40px; /* Spacing between header and form */
+  padding: 60px 20px;
+  border-radius: var(--border-radius);
+  background-size: cover;
+  background-position: center;
+  color: white;
+  overflow: hidden;
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(0, 50, 100, 0.75), rgba(0, 123, 255, 0.55));
+  z-index: 1;
+}
+
+.page-header h1,
+.page-header p {
+  position: relative;
+  z-index: 2;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.page-header h1 {
+    color: white;
+    font-size: 2.5rem;
+}
+
+/* EDITED: Removed the wrapper and simplified the form card styles */
+.report-form-card {
+  background: var(--white-color);
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.07);
+  width: 100%;
+  max-width: 700px; /* Increased max-width slightly */
+  margin: 0 auto; /* Center the form card */
+  animation: slideUp 0.6s ease-out;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #555;
+}
+
+.form-group input[type="text"],
+.form-group input[type="file"],
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 15px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+/* EDITED: New styles for the form header */
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+.form-header h2 {
+    margin: 0;
+    font-size: 1.8rem;
+}
+.btn-secondary {
+    background-color: var(--surface-color);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+.btn-secondary:hover {
+    background-color: #e2e6ea;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

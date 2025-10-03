@@ -1,0 +1,133 @@
+/* === MAIN PROFILE PAGE LAYOUT (Desktop First) === */
+.profile-page-layout {
+  display: flex;
+  gap: 2rem; /* Space between sidebar and content */
+  padding: 2rem;
+  width: 100%;
+  align-items: flex-start;
+}
+
+/* === DESKTOP SIDEBAR === */
+.profile-sidebar {
+  flex: 0 0 250px; /* Does not grow or shrink, fixed width */
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+}
+
+.profile-sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.profile-sidebar button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-color);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.profile-sidebar button:hover:not(:disabled) {
+  background-color: var(--surface-color);
+}
+
+.profile-sidebar button.active {
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: 600;
+}
+
+.profile-sidebar button:disabled {
+  color: #b0b0b0;
+  cursor: not-allowed;
+}
+
+/* === MOBILE-ONLY TOP NAVIGATION BAR === */
+/* Hidden on desktop by default */
+.profile-top-nav {
+  display: none;
+}
+
+/* === MAIN CONTENT AREA === */
+.profile-content {
+  flex-grow: 1; /* Takes up the remaining available space */
+  width: 100%;
+}
+
+/* --- TAB CONTENT PANE LOGIC (THE FIX) ---
+  This is the most important part. We render all tab components at once
+  and use these CSS rules to control which one is visible. This prevents
+  the ComplaintHistory component from being destroyed and re-created.
+*/
+
+/* By default, all tab content is hidden */
+.tab-pane {
+  display: none;
+}
+
+/* The active tab pane is made visible with a fade-in animation */
+.tab-pane.active {
+  display: block;
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+
+/* === RESPONSIVE STYLES FOR MOBILE === */
+@media (max-width: 768px) {
+  /* Change main layout to be vertical */
+  .profile-page-layout {
+    flex-direction: column;
+    padding: 0;
+    gap: 0;
+  }
+
+  /* Hide the desktop sidebar */
+  .profile-sidebar {
+    display: none;
+  }
+
+  /* Show and style the mobile top navigation bar */
+  .profile-top-nav {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    background-color: var(--background-color);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .profile-top-nav button {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 0.75rem 0.5rem;
+    font-size: 0.8rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--text-color-light);
+    border-bottom: 3px solid transparent;
+  }
+
+  .profile-top-nav button.active {
+    color: var(--primary-color);
+    border-bottom: 3px solid var(--primary-color);
+  }
+
+  /* Add padding to the content area on mobile */
+  .profile-content {
+    padding: 1.5rem;
+  }
+}

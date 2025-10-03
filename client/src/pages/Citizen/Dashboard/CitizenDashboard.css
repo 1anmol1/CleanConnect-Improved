@@ -1,0 +1,105 @@
+/* --- Citizen Dashboard Styles --- */
+
+.citizen-dashboard {
+  padding: 40px 20px;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.dashboard-header {
+  position: relative; /* Required for the overlay */
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 60px 20px;
+  border-radius: var(--border-radius);
+  background-size: cover;
+  background-position: center;
+  color: white;
+  overflow: hidden;
+}
+
+/* New overlay style for readability */
+.dashboard-header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(45deg, rgba(0, 50, 100, 0.75), rgba(0, 123, 255, 0.55));
+  z-index: 1;
+}
+
+/* Ensure content appears above the overlay */
+.dashboard-header h1,
+.dashboard-header p {
+  position: relative;
+  z-index: 2;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5); /* Adds shadow for text pop */
+}
+
+.dashboard-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: white;
+}
+
+.dashboard-header p {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 600px;
+  margin: 10px auto 0;
+}
+
+/* --- CRITICAL FIX: The map container needs a defined height to render --- */
+.map-container {
+  height: 500px; /* This ensures the map has space to display */
+  width: 100%;
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  background-color: var(--surface-color); /* Fallback background */
+  border: 1px solid var(--border-color);
+}
+
+/* Styles for loading and error messages inside the map container */
+.loading-text, .error-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 1.2rem;
+  color: var(--text-color-light);
+  font-weight: 500;
+}
+
+.error-message {
+  color: #c53030; /* A modern, less harsh red */
+  background-color: #fff5f5;
+}
+
+/* Container for the action button below the map */
+.dashboard-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+/* This class now only adds spacing for the icon */
+.report-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  /* All other styles (color, background, padding) are now inherited from the global .btn classes */
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive styles for smaller screens */
+@media screen and (max-width: 768px) {
+  .dashboard-header h1 {
+    font-size: 2rem;
+  }
+  .map-container {
+    height: 400px; /* Adjust map height for mobile */
+  }
+}

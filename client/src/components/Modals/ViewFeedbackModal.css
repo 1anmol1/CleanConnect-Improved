@@ -1,0 +1,20 @@
+.feedback-log-container {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+.feedback-log-item {
+    background-color: var(--surface-color);
+    border-left: 4px solid var(--primary-color);
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+.feedback-log-item p {
+    margin: 0 0 8px 0;
+    font-style: italic;
+    color: var(--text-color);
+}
+.feedback-log-item small {
+    color: var(--text-color-light);
+}

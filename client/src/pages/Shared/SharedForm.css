@@ -1,0 +1,86 @@
+/*
+ * These styles are adapted from ReportIssue.css to provide a consistent form experience.
+ * They target the class names used in the NewComplaint.jsx component.
+*/
+
+.form-page-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+  background-color: var(--light-gray-bg);
+  min-height: calc(100vh - 250px);
+}
+
+.form-card-container {
+  background: var(--white-color);
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  width: 100%;
+  max-width: 600px;
+  animation: slideUp 0.6s ease-out;
+}
+
+.form-card-container h2 {
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 2rem;
+}
+
+.form-card-container p {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #666;
+}
+
+.styled-form .form-group {
+  margin-bottom: 20px;
+}
+
+.styled-form .form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #555;
+}
+
+.styled-form .form-group input[type="text"],
+.styled-form .form-group select,
+.styled-form .form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.styled-form .form-group input[type="file"] {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 100%;
+}
+
+.styled-form .form-group input:focus,
+.styled-form .form-group select:focus,
+.styled-form .form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 15px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

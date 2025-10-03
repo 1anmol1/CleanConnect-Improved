@@ -1,0 +1,248 @@
+/* --- MODERN SINGLE-LINE NAVBAR --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --nav-bg: #FFFFFF;
+  --nav-text: #1a202c;
+  --nav-text-light: #4a5568;
+  --nav-brand: #0d223f;
+  --nav-border: #e2e8f0;
+  --nav-danger-color: #e53e3e;
+  --primary-color: #007BFF; /* Assuming this is your primary blue */
+  --transition-speed: 0.3s;
+}
+
+/* Global link reset for navbar to remove underlines */
+.navbar a { text-decoration: none; }
+
+.navbar {
+  background-color: var(--nav-bg);
+  height: 80px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  font-family: 'Inter', sans-serif;
+}
+
+.navbar-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0 2rem; 
+}
+
+/* --- Logo --- */
+.navbar-logo { 
+  display: flex; 
+  align-items: center;
+  flex-shrink: 0; 
+}
+.navbar-main-logo { height: 48px; margin-right: 12px; }
+.logo-text { display: flex; flex-direction: column; }
+.project-name { color: var(--nav-brand); font-size: 1.4rem; font-weight: 700; line-height: 1.2; }
+.tagline { color: var(--nav-text-light); font-size: 0.8rem; font-weight: 500; }
+
+/* --- Desktop Navigation Links --- */
+.nav-menu-desktop {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  justify-content: center;
+}
+.nav-link {
+  color: var(--nav-text-light);
+  display: block;
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+.nav-link:hover {
+  color: var(--nav-brand);
+  background-color: #f0f7ff;
+}
+.nav-link.active {
+  color: var(--nav-brand);
+  font-weight: 600;
+  background-color: #e6f2ff;
+}
+
+/* --- NOTIFICATION BELL ICON STYLES --- */
+.notification-bell {
+  display: flex;
+  align-items: center;
+  font-size: 1.6rem;
+  color: var(--nav-text-light);
+  transition: color var(--transition-speed) ease;
+}
+
+.notification-bell:hover {
+  color: var(--primary-color);
+}
+
+.notification-bell.active {
+  color: var(--primary-color);
+}
+
+/* --- Right-side Actions --- */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+/* This rule prevents the Login/Register button from wrapping its text */
+.header-actions .btn {
+  white-space: nowrap;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.user-profile-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--nav-text-light);
+  font-weight: 500;
+  transition: color var(--transition-speed) ease;
+  white-space: nowrap; /* This prevents the user's name from wrapping */
+}
+.user-profile-link:hover { color: var(--nav-brand); }
+.user-profile-link svg { font-size: 1.5rem; }
+
+/* --- Buttons --- */
+.btn-primary { background-color: var(--nav-brand); }
+.btn-primary:hover { background-color: #000; }
+.btn-logout {
+  background-color: transparent;
+  color: var(--nav-danger-color);
+  border: 1px solid #fed7d7;
+}
+.btn-logout:hover {
+  background-color: #fff5f5;
+  border-color: #fbb6b6;
+}
+
+/* --- Hamburger Menu Icon & Dropdown --- */
+.menu-icon {
+  display: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+  color: var(--nav-brand);
+}
+
+.nav-menu-mobile-container {
+  display: none;
+  position: absolute;
+  top: 75px;
+  right: 20px;
+  width: 280px;
+  background-color: var(--nav-bg);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  border: 1px solid var(--nav-border);
+  overflow: hidden;
+  z-index: 999;
+  
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+  visibility: hidden;
+  pointer-events: none;
+}
+.nav-menu-mobile-container.active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.nav-menu-mobile {
+  list-style: none;
+  padding: 0.5rem;
+}
+.nav-menu-mobile .nav-item {
+  width: 100%;
+}
+.nav-menu-mobile .nav-link {
+  padding: 0.75rem 1rem;
+  width: 100%;
+  text-align: left;
+}
+.nav-item-profile {
+  border-bottom: 1px solid var(--nav-border);
+}
+.nav-item-profile .nav-link {
+  font-weight: 600;
+  color: var(--nav-text);
+}
+.nav-item-login {
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--nav-border);
+}
+.btn-small {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  width: 100%;
+}
+.nav-item-logout {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--nav-border);
+}
+.logout-button {
+  background: none;
+  border: none;
+  color: var(--nav-danger-color);
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  cursor: pointer;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  width: 100%;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+.logout-button:hover {
+  background-color: #fff5f5;
+}
+
+/* By default, the text is hidden */
+.nav-text {
+  display: none;
+}
+
+/* On screens wider than 768px, show the text */
+@media (min-width: 768px) {
+  .nav-text {
+    display: inline;
+    margin-left: 8px;
+  }
+}
+
+/* --- Responsive Styles --- */
+@media screen and (max-width: 960px) {
+  .navbar-container {
+    justify-content: space-between;
+    padding: 0 1.5rem;
+  }
+  .nav-menu-desktop, .user-info, .header-actions .btn-primary { display: none; }
+  .menu-icon, .nav-menu-mobile-container { display: block; }
+  
+  .header-actions {
+    margin-left: 0;
+  }
+}
+

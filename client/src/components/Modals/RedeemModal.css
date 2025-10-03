@@ -1,0 +1,225 @@
+/* === Redeem Modal E-commerce Styles === */
+
+/* --- Main Layout --- */
+/* This creates the two-column layout for offers and the cart */
+.redeem-body {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* Offers section is twice as wide as the cart */
+  gap: 2rem;
+  padding-top: 1rem;
+}
+
+
+
+/* --- Offers Section (Left Side) --- */
+.offers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  max-height: 60vh; /* Make the offers scrollable if there are many */
+  overflow-y: auto;
+  padding-right: 1rem; /* Space for the scrollbar */
+}
+
+/* Individual Offer Card Styling */
+.offer-card {
+  background-color: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.offer-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-color);
+}
+
+.offer-icon {
+  font-size: 2.5rem;
+  color: var(--primary-color);
+  margin-bottom: 0.75rem;
+}
+
+.offer-name {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+}
+
+.offer-details {
+  font-size: 0.9rem;
+  color: var(--text-color-light);
+  margin-bottom: 1rem;
+  flex-grow: 1; /* Pushes the button to the bottom */
+}
+
+/* --- "Add to Cart" Button --- */
+/* Custom button style, as requested */
+.btn-add-cart {
+  background-color: var(pri); /* Green for "add" */
+  /* color: white; */
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  width: 100%;
+}
+
+.btn-add-cart:hover {
+  background-color: #218838; /* Darker green */
+}
+
+.btn-add-cart:disabled,
+.offer-card.in-cart .btn-add-cart {
+  background-color: #e9ecef;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* --- Cart Section (Right Side) --- */
+.cart-summary {
+  background-color: var(--surface-color);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-summary h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}
+
+.current-coins-display {
+  text-align: center;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background-color: #e8f0fe;
+  border-radius: 6px;
+}
+
+.coin-total {
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.cart-items {
+  flex-grow: 1; /* Allows this section to fill available space */
+  min-height: 150px; /* Ensures a minimum height even when empty */
+}
+
+.empty-cart-text {
+  color: var(--text-color-light);
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.cart-item-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.cart-item-details {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cart-item-cost {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-color-light);
+}
+
+.btn-remove-item {
+  background: none;
+  border: none;
+  color: #adb5bd;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: color 0.2s ease;
+}
+
+.btn-remove-item:hover {
+  color: #dc3545; /* Red on hover */
+}
+
+/* --- Cart Footer & "Redeem" Button --- */
+.cart-footer {
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+  margin-top: 1rem;
+}
+
+.total-cost {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.total-cost-amount {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--primary-color);
+}
+
+/* Custom "Redeem All" button style */
+.btn-redeem-all {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  width: 100%;
+  padding: 0.8rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-redeem-all:hover {
+  background-color: #0069d9;
+  transform: scale(1.02);
+}
+
+.btn-redeem-all:disabled {
+  background-color: #ced4da;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 960px) {
+  .redeem-body {
+    grid-template-columns: 1fr; /* Stack the columns on top of each other */
+  }
+
+  .offers-grid {
+    max-height: none; /* Remove height limit on mobile */
+    overflow-y: visible;
+  }
+}

@@ -1,0 +1,74 @@
+/* === Notifications Page Styles === */
+.notifications-page .page-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.notification-item {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.notification-item.unread {
+  background-color: #f8f9fa; /* Slightly off-white for unread items */
+  border-left: 4px solid var(--primary-color);
+}
+
+.notification-icon {
+  font-size: 1.5rem;
+  color: var(--primary-color);
+  flex-shrink: 0;
+}
+
+.notification-content {
+  flex-grow: 1;
+}
+
+.notification-content p {
+  margin: 0 0 0.25rem 0;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.notification-content .notification-time {
+  font-size: 0.8rem;
+  color: var(--text-color-light);
+}
+
+/* --- THE NEW DELETE BUTTON STYLES --- */
+.delete-notification-btn {
+  background: none;
+  border: none;
+  color: #adb5bd; /* Light grey */
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.5rem;
+  margin-left: 1rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  opacity: 0; /* Hidden by default */
+}
+
+/* Show the delete button when hovering over the notification item */
+.notification-item:hover .delete-notification-btn {
+  opacity: 1;
+}
+
+.delete-notification-btn:hover {
+  color: #dc3545; /* Red on hover */
+  background-color: #f8d7da; /* Light red background */
+}

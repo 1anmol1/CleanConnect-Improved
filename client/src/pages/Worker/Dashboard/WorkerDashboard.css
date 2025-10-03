@@ -1,0 +1,69 @@
+/* Shared styles for Worker and Officer Dashboards */
+.page-header {
+  position: relative; /* Required for the overlay */
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 60px 20px;
+  border-radius: var(--border-radius);
+  background-size: cover;
+  background-position: center;
+  color: white;
+  overflow: hidden;
+}
+
+/* New overlay style for readability */
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(45deg, rgba(20, 20, 20, 0.8), rgba(60, 60, 60, 0.6)); /* Darker, neutral overlay */
+  z-index: 1;
+}
+
+/* Ensure content appears above the overlay */
+.page-header h1,
+.page-header p {
+  position: relative;
+  z-index: 2;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.page-header h1 {
+  color: white;
+}
+
+.page-header p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+}
+
+/* Worker Dashboard specific styles */
+.worker-dashboard-page { padding: 40px 20px; }
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  margin-top: 30px;
+}
+.dashboard-card {
+  text-align: center;
+  text-decoration: none;
+  color: var(--text-color);
+}
+.dashboard-card .card-icon {
+  font-size: 3rem;
+  color: var(--primary-color);
+  margin-bottom: 15px;
+}
+.dashboard-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+.dashboard-card p {
+  color: var(--text-color-light);
+}
+.dashboard-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease;
+}

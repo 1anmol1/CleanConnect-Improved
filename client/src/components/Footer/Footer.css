@@ -1,0 +1,71 @@
+/* UPDATED: Darker, more modern color scheme */
+.footer {
+  background-color: #1c1c1c; /* Near-black for a premium feel */
+  color: #a0a0a0; /* Softer light gray for text */
+  padding: 60px 0 0;
+  font-size: 0.95rem;
+}
+
+.footer-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 40px;
+  padding-bottom: 40px;
+}
+
+/* UPDATED: Refined typography */
+.footer-section h4, .footer-section .footer-logo {
+  color: var(--white-color);
+  margin-bottom: 24px;
+  font-size: 1.1rem; /* Slightly smaller for better hierarchy */
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.footer-section.about p {
+  line-height: 1.8;
+  max-width: 300px;
+}
+
+.footer-section.links ul {
+  list-style: none;
+}
+
+.footer-section.links ul li {
+  margin-bottom: 12px;
+}
+
+.footer-section.links ul li a {
+  color: #a0a0a0;
+  transition: color var(--transition-speed) ease;
+}
+
+/* UPDATED: Simplified hover effect */
+.footer-section.links ul li a:hover {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.social-icons a {
+  color: #a0a0a0;
+  font-size: 1.4rem; /* Slightly smaller icons */
+  margin-right: 20px;
+  transition: color var(--transition-speed) ease, transform var(--transition-speed) ease;
+}
+
+.social-icons a:last-child {
+  margin-right: 0;
+}
+
+.social-icons a:hover {
+  color: var(--primary-color);
+  transform: translateY(-3px);
+}
+
+.footer-bottom {
+  border-top: 1px solid #333; /* Darker border */
+  text-align: center;
+  padding: 25px 0;
+  color: #666; /* Lower contrast for copyright text */
+}

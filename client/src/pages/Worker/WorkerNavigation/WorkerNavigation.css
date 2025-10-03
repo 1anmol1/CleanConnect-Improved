@@ -1,0 +1,86 @@
+.worker-navigation-page {
+  padding-top: 2rem;
+}
+.navigation-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.navigation-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+.nav-map-panel {
+  height: 50vh;
+}
+.nav-details-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2rem;
+}
+.stop-info .stop-counter {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+.stop-info h2 {
+  margin-top: 0;
+}
+.status-pill {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-weight: 600;
+  margin-top: 1rem;
+}
+.status-full { background-color: #fdd; color: #c00; }
+.status-half-full { background-color: #ffe8cc; color: #f59e0b; }
+.status-empty { background-color: #dcfce7; color: #166534; }
+.nav-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+.btn-next-stop, .btn-complete-route, .btn-end-route {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+.btn-next-stop, .btn-complete-route {
+  background-color: var(--primary-color);
+  color: white;
+}
+.btn-next-stop:hover, .btn-complete-route:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+}
+.btn-end-route {
+  background-color: #f8f9fa;
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+.btn-end-route:hover {
+  background-color: #e2e6ea;
+}
+
+@media (min-width: 960px) {
+  .navigation-layout {
+    grid-template-columns: 2fr 1fr;
+  }
+  .nav-map-panel {
+    height: 70vh;
+  }
+}

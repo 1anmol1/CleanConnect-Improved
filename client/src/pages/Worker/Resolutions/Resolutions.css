@@ -1,0 +1,90 @@
+.resolutions-page { padding: 40px 20px; }
+
+.page-header {
+  position: relative;
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 60px 20px;
+  border-radius: var(--border-radius);
+  background-size: cover;
+  background-position: center;
+  color: white;
+  overflow: hidden;
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(45deg, rgba(20, 20, 20, 0.8), rgba(60, 60, 60, 0.6));
+  z-index: 1;
+}
+
+.page-header h1,
+.page-header p {
+  position: relative;
+  z-index: 2;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.page-header h1 {
+    color: white;
+}
+
+.tasks-list { max-width: 900px; margin: 0 auto; }
+.task-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.status-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+.status-icon.pending, .status-icon.assigned { color: #ffc107; }
+.status-icon.resolved { color: var(--secondary-color); }
+
+.task-details {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.task-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 5px;
+}
+
+.task-issue-type {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.task-bin-id {
+  font-size: 0.85rem;
+  background-color: var(--surface-color);
+  color: var(--text-color-light);
+  padding: 3px 10px;
+  border-radius: 5px;
+  border: 1px solid var(--border-color);
+  font-family: monospace;
+}
+
+.task-description {
+  margin: 0;
+  font-weight: 400;
+  color: var(--text-color);
+}
+
+.status-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.status-text.pending, .status-text.assigned { color: #ffc107; }
+.status-text.resolved { color: var(--secondary-color); }

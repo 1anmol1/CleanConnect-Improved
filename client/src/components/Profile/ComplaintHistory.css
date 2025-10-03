@@ -1,0 +1,72 @@
+.complaint-history h2 { margin-bottom: 20px; }
+.history-item { margin-bottom: 20px; }
+.history-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.history-item h4 { font-size: 1.2rem; margin: 0; }
+
+.status-badge {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.status-pending { background-color: #fff3cd; color: #856404; }
+.status-assigned { background-color: #d1ecf1; color: #0c5460; }
+.status-resolved { background-color: #cce5ff; color: #004085; }
+.status-verified { background-color: #d4edda; color: #155724; }
+.status-feedbackprovided { background-color: #e2e3e5; color: #383d41; }
+.status-closed { background-color: #f8d7da; color: #721c24; }
+.status-reopened { background-color: #ffc107; color: #333; }
+
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+  margin: 15px 0;
+  padding: 15px;
+  background-color: var(--surface-color);
+  border-radius: var(--border-radius);
+}
+.info-item span {
+  font-size: 0.8rem;
+  color: var(--text-color-light);
+  font-weight: 500;
+}
+.info-item p { margin: 0; font-weight: 600; }
+.description-text { margin-bottom: 20px; }
+
+.feedback-section { margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px; }
+
+/* --- NEW: Styles for the proof image --- */
+.proof-image-container {
+    margin-bottom: 20px;
+}
+.proof-title {
+    margin-bottom: 10px;
+}
+.proof-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+.proof-image:hover {
+    opacity: 0.8;
+}
+
+.feedback-prompt { font-weight: 600; margin-bottom: 15px; }
+.feedback-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 15px; }
+.thumbs-container { display: flex; gap: 10px; }
+.thumb-btn {
+  font-size: 1.5rem; background: none; border: 2px solid var(--border-color);
+  width: 50px; height: 50px; border-radius: 50%; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s ease;
+}
+.thumb-btn:hover { transform: scale(1.1); }
+.thumb-btn.active-up { background-color: #d4edda; color: #155724; border-color: #155724; }
+.thumb-btn.active-down { background-color: #f8d7da; color: #721c24; border-color: #721c24; }
+.feedback-controls textarea { flex-grow: 1; min-width: 200px; }
