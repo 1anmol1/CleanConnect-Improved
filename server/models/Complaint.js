@@ -1,44 +1,42 @@
-import mongoose from 'mongoose';
+import express from 'express';
+const router = express.Router();
+import { protect, authorize } from '../middleware/authMiddleware.js';
 
-const complaintSchema = new mongoose.Schema({
-  issueType: {
-    type: String,
-    enum: ['Overflowing Bin', 'Damaged Bin', 'Waste Spilled Nearby', 'Other', 'Roadblock', 'Public Waste Spill'],
-    required: [true, 'Please select an issue type'],
-  },
-  binId: { type: String, trim: true },
-  description: { type: String, maxlength: 500 },
-  imageUrl: { type: String },
-  city: { type: String, required: true },
-  area: { type: String, required: true },
-  reports: [{
-    reporter: { type: mongoose.Schema.ObjectId, ref: 'User' },
-    reportedAt: { type: Date, default: Date.now }
-  }],
-  reportCount: { type: Number, default: 1 },
-  assignedTo: { type: mongoose.Schema.ObjectId, ref: 'User' },
-  status: {
-    type: String,
-    enum: ['Pending', 'Assigned', 'Resolved', 'Verified', 'FeedbackProvided', 'Closed', 'Reopened'],
-    default: 'Pending',
-  },
-  resolvedAt: { type: Date },
-  resolutionImageUrl: { type: String },
-  officerVerificationStatus: {
-    type: String,
-    enum: ['Approved', 'Rejected'],
-  },
-  // --- EDITED: Changed to an array to log all feedbacks ---
-  feedbacks: [{
-    user: { type: mongoose.Schema.ObjectId, ref: 'User' },
-    satisfaction: { type: String, enum: ['Positive', 'Negative'], required: true },
-    comment: String,
-    createdAt: { type: Date, default: Date.now }
-  }],
-  positiveFeedbackCount: { type: Number, default: 0 },
-  negativeFeedbackCount: { type: Number, default: 0 },
-  notifiedAt: { type: Date },
-}, { timestamps: true });
+// Import all the controller functions
+import {
+  getComplaints,
+  createComplaint,
+  assignComplaint,
+  resolveComplaint,
+  verifyAndNotifyComplaint, // The new combined function
+  closeComplaint,
+  getMyComplaints,
+  bulkDeleteComplaints
+} from '../controllers/complaintController.js';
 
-const Complaint = mongoose.model('Complaint', complaintSchema);
-export default Complaint;
+// Setup routes
+
+// Officer: Get all complaints. Citizen: Create a new one.
+router.route('/')
+  .get(protect, authorize('Officer'), getComplaints)
+  .post(protect, authorize('Citizen'), createComplaint);
+
+// Citizen: Get their own complaint history
+router.route('/my-history').get(protect, getMyComplaints);
+
+// Officer: Bulk delete selected complaints
+router.route('/bulk-delete').post(protect, authorize('Officer'), bulkDeleteComplaints);
+
+// Officer: Assign a complaint
+router.route('/:id/assign').put(protect, authorize('Officer'), assignComplaint);
+
+// Worker: Resolve a complaint
+router.route('/:id/resolve').put(protect, authorize('Worker'), resolveComplaint);
+
+// Officer: Verify a resolution AND notify the citizen
+router.route('/:id/verify').put(protect, authorize('Officer'), verifyAndNotifyComplaint);
+
+// Officer: Close a complaint
+router.route('/:id/close').put(protect, authorize('Officer'), closeComplaint);
+
+export default router;

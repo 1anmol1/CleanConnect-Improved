@@ -1,28 +1,24 @@
 import express from 'express';
-// 1. Import the new 'deleteNotification' function from your controller
-import { 
-  createNotification, 
-  getMyNotifications, 
-  sendResolutionNotification,
-  deleteNotification // <-- ADD THIS IMPORT
-} from '../controllers/notificationController.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
+import {
+  getMyNotifications,
+  deleteNotification,
+  createNotification,
+  sendResolutionNotification
+} from '../controllers/notificationController.js';
 
 const router = express.Router();
 
-router.route('/')
-  .post(protect, authorize('Officer'), createNotification);
-  
-router.route('/my-notifications')
-  .get(protect, authorize('Citizen', 'Worker'), getMyNotifications);
+// Officer: Broadcast notification
+router.post('/', protect, authorize('Officer'), createNotification);
 
-router.route('/resolution')
-    .post(protect, authorize('Officer'), sendResolutionNotification);
+// Officer: Send notification for complaint resolution
+router.post('/send-resolution', protect, authorize('Officer'), sendResolutionNotification);
 
-// 2. ADD THIS NEW ROUTE DEFINITION
-// This tells Express that when it receives a DELETE request to '/api/notifications/:id',
-// it should run the 'protect' middleware and then the 'deleteNotification' controller.
-router.route('/:id')
-  .delete(protect, deleteNotification);
+// Any user: Get their notifications
+router.get('/my-notifications', protect, getMyNotifications);
+
+// Any user: Delete their notification
+router.delete('/:id', protect, deleteNotification);
 
 export default router;

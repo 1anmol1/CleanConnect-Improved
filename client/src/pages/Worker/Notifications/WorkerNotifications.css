@@ -1,31 +1,75 @@
-.notifications-page { padding: 40px 20px; }
-.page-header {
-  position: relative;
+/* === Worker Notifications Page Styles === */
+.notifications-page .page-header {
   text-align: center;
-  margin-bottom: 40px;
-  padding: 60px 20px;
-  border-radius: var(--border-radius);
-  background-size: cover;
-  background-position: center;
-  color: white;
-  overflow: hidden;
+  margin-bottom: 2rem;
 }
-.page-header::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(45deg, rgba(20, 20, 20, 0.8), rgba(60, 60, 60, 0.6));
-  z-index: 1;
+
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
 }
-.page-header h1,
-.page-header p {
-  position: relative;
-  z-index: 2;
-  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+
+.notification-item {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  transition: all 0.2s ease-in-out;
+  position: relative; /* Needed for the delete button positioning */
 }
-.notifications-list { max-width: 800px; margin: 0 auto; }
-.notification-item { display: flex; align-items: flex-start; gap: 20px; margin-bottom: 15px; }
-.notification-icon { font-size: 1.5rem; color: var(--primary-color); margin-top: 5px; }
-.notification-content h4 { margin-bottom: 5px; }
-.notification-content p { margin-bottom: 5px; font-weight: 400; color: var(--text-color-light); }
-.notification-content small { color: #999; }
+
+.notification-item.unread {
+  background-color: #f8f9fa;
+  border-left: 4px solid var(--primary-color);
+}
+
+.notification-icon {
+  font-size: 1.5rem;
+  color: var(--primary-color);
+  flex-shrink: 0;
+}
+
+.notification-content {
+  flex-grow: 1;
+}
+
+.notification-content p {
+  margin: 0 0 0.25rem 0;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.notification-content small {
+  font-size: 0.8rem;
+  color: var(--text-color-light);
+}
+
+/* --- Delete Button Styles --- */
+.delete-notification-btn {
+  background: none;
+  border: none;
+  color: #adb5bd; /* Light grey */
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.5rem;
+  margin-left: 1rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  opacity: 0; /* Hidden by default */
+}
+
+/* Show the delete button when hovering over the notification item */
+.notification-item:hover .delete-notification-btn {
+  opacity: 1;
+}
+
+.delete-notification-btn:hover {
+  color: #dc3545; /* Red on hover */
+  background-color: #f8d7da; /* Light red background */
+}

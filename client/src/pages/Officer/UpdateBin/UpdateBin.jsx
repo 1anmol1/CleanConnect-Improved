@@ -2,33 +2,37 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../../hooks/useAuth.js';
-import Loader from '../../../components/Loader/Loader.jsx'; // Assuming you might want a loader
-import '../../Shared/SharedForm.css'; // Assuming you have shared form styles
+import '../../Shared/SharedForm.css';
 
 const UpdateBin = () => {
   const [formData, setFormData] = useState({ binId: '', coordinates: '', area: '' });
+  // THE FIX: New state to hold the list of areas
   const [areas, setAreas] = useState([]);
+  const [loadingAreas, setLoadingAreas] = useState(false);
   const { user } = useAuth();
 
+  // THE FIX: This useEffect hook fetches areas when the component loads
   useEffect(() => {
     const fetchAreas = async () => {
       if (user?.city) {
+        setLoadingAreas(true);
         try {
           const token = localStorage.getItem('token');
-          // Assuming API returns an array of area objects like [{ name: 'Kothrud' }]
+          // Call the new backend endpoint
           const { data } = await axios.get(`/api/areas/${user.city}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
-          // Extract just the names for the dropdown
-          setAreas(data.data.map(area => area.name) || []);
+          setAreas(data.data || []);
         } catch (error) {
           console.error("Failed to fetch areas", error);
           toast.error("Could not load areas for your city.");
+        } finally {
+            setLoadingAreas(false);
         }
       }
     };
     fetchAreas();
-  }, [user?.city]);
+  }, [user?.city]); // Re-runs if the user changes
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -37,16 +41,14 @@ const UpdateBin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const coordsArray = formData.coordinates.split(',').map(coord => parseFloat(coord.trim()));
+      const coordsArray = formData.coordinates.split(',').map(Number);
       if (coordsArray.length !== 2 || isNaN(coordsArray[0]) || isNaN(coordsArray[1])) {
-        toast.error("Please enter coordinates in 'Latitude, Longitude' format.");
+        toast.error("Please enter coordinates in 'Lat, Lng' format.");
         return;
       }
-      
       const payload = { 
           binId: formData.binId,
           area: formData.area,
-          // GeoJSON format is [Longitude, Latitude]
           coordinates: [coordsArray[1], coordsArray[0]] 
         };
       
@@ -55,7 +57,7 @@ const UpdateBin = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('New bin added to the network!');
-      setFormData({ binId: '', coordinates: '', area: '' }); // Reset form
+      setFormData({ binId: '', coordinates: '', area: '' });
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to add bin.');
     }
@@ -71,13 +73,20 @@ const UpdateBin = () => {
             <label htmlFor="binId">Bin ID</label>
             <input type="text" name="binId" value={formData.binId} onChange={handleChange} placeholder="e.g., PUNE-KTD-02" required />
           </div>
+          
+          {/* THE FIX: The dropdown is now populated from the 'areas' state */}
           <div className="form-group">
             <label htmlFor="area">Area</label>
-            <select name="area" value={formData.area} onChange={handleChange} required>
-              <option value="">-- Select an Area --</option>
-              {areas.map(areaName => <option key={areaName} value={areaName}>{areaName}</option>)}
+            <select name="area" value={formData.area} onChange={handleChange} required disabled={loadingAreas}>
+              <option value="">{loadingAreas ? 'Loading areas...' : '-- Select an Area --'}</option>
+              {areas.map(area => (
+                <option key={area._id} value={area.name}>
+                  {area.name}
+                </option>
+              ))}
             </select>
           </div>
+
           <div className="form-group">
             <label htmlFor="coordinates">GPS Coordinates (Lat, Lng)</label>
             <input type="text" name="coordinates" value={formData.coordinates} onChange={handleChange} placeholder="e.g., 18.5074, 73.8076" required />

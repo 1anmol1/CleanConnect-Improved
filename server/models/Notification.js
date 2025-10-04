@@ -5,6 +5,7 @@ const notificationSchema = new mongoose.Schema({
     type: mongoose.Schema.ObjectId,
     ref: 'User',
     required: true,
+    index: true // For fast user-based queries
   },
   title: {
     type: String,
@@ -26,6 +27,8 @@ const notificationSchema = new mongoose.Schema({
 }, {
   timestamps: true,
 });
+// Compound index for fast user+date queries
+notificationSchema.index({ user: 1, createdAt: -1 });
 
 const Notification = mongoose.model('Notification', notificationSchema);
 
