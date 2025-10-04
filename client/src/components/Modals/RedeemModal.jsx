@@ -11,13 +11,14 @@ import {
   FaCookieBite, 
   FaMugHot, 
   FaLandmark,
-  FaTrain
+  FaTrain,
+  FaTrash // THE FIX: Added FaTrash to the import list
 } from 'react-icons/fa';
 import { GiTwoCoins } from "react-icons/gi";
 import UniversalModal from './UniversalModal';
 import './RedeemModal.css';
 
-// THE UPDATE: The offer list is now specific to Pune
+// The offer list for Pune
 const puneOffers = [
     { name: "Vaishali, FC Road", offer: "10% Off on Total Bill", cost: 0, icon: <FaUtensils /> },
     { name: "Bedekar Misal", offer: "Free Solkadhi with Misal", cost: 0, icon: <FaMugHot /> },
@@ -27,7 +28,6 @@ const puneOffers = [
     { name: "Goodluck Cafe", offer: "Free Bun Maska with Chai", cost: 0, icon: <FaMugHot /> },
     { name: "Shaniwar Wada Entry", offer: "20% Off Entry Ticket", cost: 0, icon: <FaLandmark /> },
     { name: "Pune Metro Ride", offer: "One Free Short-Distance Ride", cost: 0, icon: <FaTrain /> },
-    // Kept as requested
     { name: "Local Bus Pass (PMPML)", offer: "₹100 Off Monthly Pass", cost: 0, icon: <FaBus /> },
     { name: "City Library Membership", offer: "20% Off Annual Fee", cost: 0, icon: <FaBook /> }
 ];
@@ -102,6 +102,7 @@ const RedeemModal = ({ isOpen, onClose, currentCoins }) => {
                                 <span className="cart-item-name">{item.name}</span>
                                 <div className="cart-item-details">
                                     <span className="cart-item-cost"><GiTwoCoins /> {item.cost}</span>
+                                    {/* This button will now render correctly */}
                                     <button onClick={() => removeFromCart(item.name)} className="btn-remove-item"><FaTrash /></button>
                                 </div>
                             </div>
@@ -114,7 +115,7 @@ const RedeemModal = ({ isOpen, onClose, currentCoins }) => {
                         <span className="total-cost-amount"><GiTwoCoins /> {totalCost}</span>
                     </div>
                     <button 
-                        className="btn btn-redeem-all"
+                        className="btn-redeem-all"
                         disabled={cart.length === 0 || totalCost > currentCoins}
                         onClick={handleRedeemCart}
                     >

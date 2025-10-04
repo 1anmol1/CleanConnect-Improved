@@ -1,27 +1,23 @@
 /* === Redeem Modal E-commerce Styles === */
 
 /* --- Main Layout --- */
-/* This creates the two-column layout for offers and the cart */
 .redeem-body {
   display: grid;
-  grid-template-columns: 2fr 1fr; /* Offers section is twice as wide as the cart */
+  grid-template-columns: 2fr 1fr;
   gap: 2rem;
   padding-top: 1rem;
 }
-
-
 
 /* --- Offers Section (Left Side) --- */
 .offers-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 1rem;
-  max-height: 60vh; /* Make the offers scrollable if there are many */
+  max-height: 60vh;
   overflow-y: auto;
-  padding-right: 1rem; /* Space for the scrollbar */
+  padding-right: 1rem;
 }
 
-/* Individual Offer Card Styling */
 .offer-card {
   background-color: #fff;
   border: 1px solid var(--border-color);
@@ -38,31 +34,13 @@
   box-shadow: var(--shadow-color);
 }
 
-.offer-icon {
-  font-size: 2.5rem;
-  color: var(--primary-color);
-  margin-bottom: 0.75rem;
-}
+.offer-icon { font-size: 2.5rem; color: var(--primary-color); margin-bottom: 0.75rem; }
+.offer-name { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-color); }
+.offer-details { font-size: 0.9rem; color: var(--text-color-light); margin-bottom: 1rem; flex-grow: 1; }
 
-.offer-name {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: var(--text-color);
-}
-
-.offer-details {
-  font-size: 0.9rem;
-  color: var(--text-color-light);
-  margin-bottom: 1rem;
-  flex-grow: 1; /* Pushes the button to the bottom */
-}
-
-/* --- "Add to Cart" Button --- */
-/* Custom button style, as requested */
 .btn-add-cart {
-  background-color: var(pri); /* Green for "add" */
-  /* color: white; */
+  background-color: var(--secondary-color);
+  color: white;
   border: none;
   padding: 0.6rem 1rem;
   border-radius: 6px;
@@ -72,25 +50,21 @@
   width: 100%;
 }
 
-.btn-add-cart:hover {
-  background-color: #218838; /* Darker green */
-}
-
-.btn-add-cart:disabled,
-.offer-card.in-cart .btn-add-cart {
-  background-color: #e9ecef;
-  color: #6c757d;
-  cursor: not-allowed;
-}
+.btn-add-cart:hover { background-color: #218838; }
+.btn-add-cart:disabled { background-color: #e9ecef; color: #6c757d; cursor: not-allowed; }
 
 /* --- Cart Section (Right Side) --- */
+
+/* --- THE FIX STARTS HERE --- */
 .cart-summary {
   background-color: var(--surface-color);
   border-radius: var(--border-radius);
   padding: 1.5rem;
+  /* 1. Set the container to be a flex column */
   display: flex;
   flex-direction: column;
 }
+/* --- END OF FIX --- */
 
 .cart-summary h3 {
   display: flex;
@@ -110,20 +84,22 @@
   border-radius: 6px;
 }
 
-.coin-total {
-  font-weight: 700;
-  color: var(--primary-color);
-}
+.coin-total { font-weight: 700; color: var(--primary-color); }
 
+/* --- THE FIX CONTINUES HERE --- */
 .cart-items {
-  flex-grow: 1; /* Allows this section to fill available space */
-  min-height: 150px; /* Ensures a minimum height even when empty */
+  /* 2. This makes the list area grow to fill all available vertical space */
+  flex-grow: 1;
+  /* 3. This gives the empty text a minimum height, preventing the collapse */
+  min-height: 150px;
 }
+/* --- END OF FIX --- */
 
 .empty-cart-text {
   color: var(--text-color-light);
   text-align: center;
   margin-top: 2rem;
+  font-style: italic;
 }
 
 .cart-item {
@@ -134,42 +110,17 @@
   border-bottom: 1px solid #e9ecef;
 }
 
-.cart-item-name {
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.cart-item-details {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.cart-item-cost {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--text-color-light);
-}
-
-.btn-remove-item {
-  background: none;
-  border: none;
-  color: #adb5bd;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: color 0.2s ease;
-}
-
-.btn-remove-item:hover {
-  color: #dc3545; /* Red on hover */
-}
+.cart-item-name { font-size: 0.9rem; font-weight: 500; }
+.cart-item-details { display: flex; align-items: center; gap: 1rem; }
+.cart-item-cost { display: flex; align-items: center; gap: 4px; color: var(--text-color-light); }
+.btn-remove-item { background: none; border: none; color: #adb5bd; cursor: pointer; font-size: 1rem; transition: color 0.2s ease; }
+.btn-remove-item:hover { color: #dc3545; }
 
 /* --- Cart Footer & "Redeem" Button --- */
 .cart-footer {
   border-top: 1px solid var(--border-color);
   padding-top: 1rem;
-  margin-top: 1rem;
+  margin-top: auto; /* Pushes the footer to the bottom of the flex container */
 }
 
 .total-cost {
@@ -180,14 +131,8 @@
   margin-bottom: 1rem;
 }
 
-.total-cost-amount {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--primary-color);
-}
+.total-cost-amount { display: flex; align-items: center; gap: 5px; color: var(--primary-color); }
 
-/* Custom "Redeem All" button style */
 .btn-redeem-all {
   background-color: var(--primary-color);
   color: white;
@@ -201,25 +146,16 @@
   transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
-.btn-redeem-all:hover {
-  background-color: #0069d9;
-  transform: scale(1.02);
-}
-
-.btn-redeem-all:disabled {
-  background-color: #ced4da;
-  cursor: not-allowed;
-  transform: none;
-}
+.btn-redeem-all:hover { background-color: #0069d9; transform: scale(1.02); }
+.btn-redeem-all:disabled { background-color: #ced4da; cursor: not-allowed; transform: none; }
 
 /* --- Mobile Responsiveness --- */
 @media (max-width: 960px) {
   .redeem-body {
-    grid-template-columns: 1fr; /* Stack the columns on top of each other */
+    grid-template-columns: 1fr;
   }
-
   .offers-grid {
-    max-height: none; /* Remove height limit on mobile */
+    max-height: none;
     overflow-y: visible;
   }
 }

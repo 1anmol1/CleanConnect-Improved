@@ -63,14 +63,14 @@ const Navbar = () => {
   };
 
   const allLinks = getNavLinks();
-  // Links for the main desktop navigation (excludes notification-related links)
-  const desktopNavLinks = allLinks.filter(link => !link.title.includes('Notification'));
-  // Find the specific notification link for the bell icon
-  const notificationLink = allLinks.find(link => link.title === 'Notifications');
-  
-  // UPDATED: A flag to check if the bell icon should be visible outside the menu
-  const isBellVisible = user && (user.role === 'Citizen' || user.role === 'Worker');
 
+  // --- THE FIX IS ON THIS LINE ---
+  // The filter now only removes the link with the EXACT title "Notifications".
+  // This will correctly leave "Send Notification" for the Officer.
+  const desktopNavLinks = allLinks.filter(link => link.title !== 'Notifications');
+  
+  const notificationLink = allLinks.find(link => link.title === 'Notifications');
+  const isBellVisible = user && (user.role === 'Citizen' || user.role === 'Worker');
   const profileLink = user ? `/${user.role.toLowerCase()}/profile` : '/login';
 
   return (
@@ -84,7 +84,7 @@ const Navbar = () => {
           </div>
         </Link>
 
-        {/* Desktop Menu */}
+        {/* The desktop menu will now correctly display "Send Notification" for the officer */}
         <ul className="nav-menu-desktop">
           {desktopNavLinks.map((link) => (
             <li className="nav-item" key={link.title}>
@@ -96,7 +96,6 @@ const Navbar = () => {
         <div className="header-actions">
           {user ? (
             <>
-              {/* UPDATED: Bell icon is now here, rendered conditionally */}
               {isBellVisible && notificationLink && (
                 <NavLink to={notificationLink.path} className="nav-link-icon notification-bell">
                   <FaBell />
@@ -118,7 +117,7 @@ const Navbar = () => {
           <div className="menu-icon" onClick={toggleMenu}>{isOpen ? <FaTimes /> : <FaBars />}</div>
         </div>
 
-        {/* Mobile Menu Container */}
+        {/* The mobile menu logic remains the same and is already correct */}
         <div className={`nav-menu-mobile-container ${isOpen ? 'active' : ''}`}>
           <ul className="nav-menu-mobile">
             {user && (
@@ -127,13 +126,10 @@ const Navbar = () => {
               </li>
             )}
             
-            {/* UPDATED: Logic to conditionally show links in mobile menu */}
             {allLinks.map((link) => {
-              // For Citizens/Workers, hide the "Notifications" text link because the bell icon is already visible
               if (isBellVisible && link.title === 'Notifications') {
                 return null;
               }
-              // Render all other links
               return (
                 <li className="nav-item" key={link.title}>
                   <NavLink to={link.path} className="nav-link" onClick={closeMenu}>
@@ -162,4 +158,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
