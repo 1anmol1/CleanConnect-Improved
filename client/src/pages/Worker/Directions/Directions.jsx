@@ -9,7 +9,6 @@ import Loader from '../../../components/Loader/Loader.jsx';
 import useWorkerLocation from '../../../hooks/useWorkerLocation.js';
 import './Directions.css';
 
-// This is our fallback data.
 const mockBinsData = [
     { _id: "60d5f1c7b54764421b7156e2", binId: "KTD-007", area: "Kothrud", location: { coordinates: [73.7889, 18.5145] }, fillLevel: 60, status: "Empty" },
     { _id: "60d5f1c7b54764421b7156dc", binId: "PUNE-KTD-01", area: "Kothrud", location: { coordinates: [73.8041, 18.5074] }, fillLevel: 95, status: "Full" },
@@ -34,7 +33,6 @@ const Directions = () => {
 
   const { isLoaded } = useJsApiLoader({ googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY });
   
-  // This useEffect handles fetching and merging live data with mock data.
   useEffect(() => {
     const fetchAndMergeBins = async () => {
         try {
@@ -60,35 +58,37 @@ const Directions = () => {
     return () => clearInterval(intervalId);
   }, []);
 
-  // This useEffect handles running the optimization.
   useEffect(() => {
     if (isLoaded && workerLocation && !initialLoading) {
       runRouteOptimization();
     }
   }, [isLoaded, workerLocation, currentBins, initialLoading]);
 
-  // All handler functions remain the same.
   const toggleStageForDeletion = (binId) => { setBinsToDelete(prev => prev.includes(binId) ? prev.filter(id => id !== binId) : [...prev, binId]); };
   
   const handleConfirmDeletion = () => {
     const remainingBins = currentBins.filter(bin => !binsToDelete.includes(bin._id));
     setBinsToDelete([]);
-    setOptimizedRoute(null); // Clear the old route
-    setCurrentBins(remainingBins); // This state change triggers the useEffect to re-optimize
+    setOptimizedRoute(null);
+    setCurrentBins(remainingBins);
     toast.success(`${binsToDelete.length} bin(s) removed. Re-optimizing route...`);
   };
 
   const runRouteOptimization = () => {
     if (!workerLocation) return;
-    if (currentBins.length < 2) {
-      setOptimizedRoute({ stops: [] }); // Set an empty route, not null
-      setRouteSummary(`Not enough bins to generate a route.`);
+    if (currentBins.length === 0) {
+      setOptimizedRoute({ stops: [] });
+      setRouteSummary(`No bins available for routing.`);
       return;
     }
     setIsOptimizing(true);
     const directionsService = new window.google.maps.DirectionsService();
     const waypoints = currentBins.map(bin => ({ location: { lat: bin.location.coordinates[1], lng: bin.location.coordinates[0] }, stopover: true }));
-    directionsService.route({ origin: workerLocation, destination: workerLocation, waypoints, optimizeWaypoints: true, travelMode: window.google.maps.TravelMode.DRIVING }, (result, status) => {
+    
+    // Use the first waypoint as the destination for a more logical end point
+    const destination = waypoints.pop().location; 
+
+    directionsService.route({ origin: workerLocation, destination: destination, waypoints, optimizeWaypoints: true, travelMode: window.google.maps.TravelMode.DRIVING }, (result, status) => {
       if (status === window.google.maps.DirectionsStatus.OK) {
         const route = result.routes[0];
         const orderedStops = route.waypoint_order.map(i => currentBins[i]);
@@ -100,7 +100,6 @@ const Directions = () => {
         setMapCenter(workerLocation);
       } else {
         toast.error("Failed to generate route: " + status);
-        // THE FIX: If the API fails, set an empty but valid route object to prevent a crash.
         setOptimizedRoute({ stops: [] });
         setRouteSummary("Could not generate an optimized route.");
       }
@@ -108,32 +107,50 @@ const Directions = () => {
     });
   };
 
-  const handleStartRoute = () => { if (optimizedRoute) { navigate('/worker/navigation', { state: { route: optimizedRoute.stops, workerLocation } }); } };
-
-  // This is the initial loading state for the entire page.
+  // --- THE FIX IS HERE ---
+  const handleStartRoute = () => {
+    if (!optimizedRoute || !workerLocation) {
+        toast.error("Route has not been optimized yet.");
+        return;
+    }
+    
+    // 1. Format the worker's location as the origin
+    const origin = `${workerLocation.lat},${workerLocation.lng}`;
+    
+    // 2. Format all bin locations as waypoints, separated by a pipe character
+    const waypoints = optimizedRoute.stops
+      .map(stop => `${stop.location.coordinates[1]},${stop.location.coordinates[0]}`)
+      .join('|');
+      
+    // 3. Construct the final Google Maps URL
+    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${origin}&waypoints=${waypoints}`;
+    
+    // 4. Open the URL in a new browser tab. On mobile, this will launch the Google Maps app.
+    window.open(googleMapsUrl, '_blank');
+    
+    // 5. Navigate to the in-app checklist page
+    navigate('/worker/navigation', { state: { route: optimizedRoute.stops, workerLocation } });
+  };
+  
   if (!isLoaded || locationLoading || initialLoading) {
     return <Loader text="Generating your optimized route for today..." />;
   }
 
-  // After initial loading, we always render the main component structure.
-  // We use conditional rendering *inside* the component to handle the "no route" case.
+  if (!optimizedRoute || isOptimizing) {
+    return <Loader text="Optimizing route..." />;
+  }
+  
   return (
     <div className="directions-page container fade-in">
       <header className="page-header">
         <h1>Today's Optimized Route</h1>
-        {/* Only show the summary if a route was successfully generated */}
         {routeSummary && <p className="route-summary">{routeSummary}</p>}
       </header>
 
-      {/* THE FIX: Check if optimizedRoute and its 'stops' array exist before trying to render them. */}
-      {!optimizedRoute || isOptimizing ? (
-        <Loader text="Optimizing route..." />
-      ) : optimizedRoute.stops.length === 0 ? (
+      {optimizedRoute.stops.length === 0 ? (
         <div className="card" style={{ textAlign: 'center', padding: '40px' }}>
             <p>{routeSummary || "No bins available for routing."}</p>
-            <button onClick={runRouteOptimization} className="btn btn-primary" style={{marginTop: '1rem'}}>
-                <FaSync /> Try Again
-            </button>
+            <button onClick={runRouteOptimization} className="btn btn-primary" style={{marginTop: '1rem'}}><FaSync /> Try Again</button>
         </div>
       ) : (
         <div className="directions-layout">
@@ -149,17 +166,9 @@ const Directions = () => {
             <div className="route-list-header">
               <h3><FaListOl /> Collection Stops ({optimizedRoute.stops.length})</h3>
               <div className="route-buttons">
-                {binsToDelete.length > 0 && (
-                  <button onClick={handleConfirmDeletion} className="btn btn-danger regenerate-btn">
-                    <FaCheckCircle /> Confirm Deletions ({binsToDelete.length})
-                  </button>
-                )}
-                <button onClick={runRouteOptimization} className="btn btn-secondary regenerate-btn">
-                  <FaSync /> Regenerate
-                </button>
-                <button onClick={handleStartRoute} className="btn btn-primary start-route-btn">
-                  <FaRoute /> Start Route
-                </button>
+                {binsToDelete.length > 0 && (<button onClick={handleConfirmDeletion} className="btn btn-danger regenerate-btn"><FaCheckCircle /> Confirm Deletions ({binsToDelete.length})</button>)}
+                <button onClick={runRouteOptimization} className="btn btn-secondary regenerate-btn"><FaSync /> Regenerate</button>
+                <button onClick={handleStartRoute} className="btn btn-primary start-route-btn"><FaRoute /> Start Route</button>
               </div>
             </div>
             <ul className="route-list">
@@ -168,9 +177,7 @@ const Directions = () => {
                   <div className="route-number">{index + 1}</div>
                   <div className="route-details"><strong>Bin ID: {stop.binId}</strong><span>{stop.area}</span></div>
                   <span className={`route-status status-${stop.status.toLowerCase()}`}>{stop.status}</span>
-                  <button onClick={() => toggleStageForDeletion(stop._id)} className="btn-delete-bin">
-                    <FaTrash />
-                  </button>
+                  <button onClick={() => toggleStageForDeletion(stop._id)} className="btn-delete-bin"><FaTrash /></button>
                 </li>
               ))}
             </ul>

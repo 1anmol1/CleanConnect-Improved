@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
-import ResolveComplaintModal from '../../../components/Modals/ResolveComplaintModal.jsx'; // Import the new modal
+import ResolveComplaintModal from '../../../components/Modals/ResolveComplaintModal.jsx';
 import Loader from '../../../components/Loader/Loader.jsx';
 import dashboardHeroImage from '/src/assets/resolution.png';
 import './Resolutions.css';
@@ -21,6 +21,8 @@ const Resolutions = () => {
       });
       setTasks(data.data);
     } catch (error) {
+      // THE FIX: This now provides a clear, user-facing error message.
+      toast.error(error.response?.data?.error || "Could not load your assigned tasks.");
       console.error("Failed to fetch resolutions", error);
     } finally {
       setLoading(false);
@@ -50,9 +52,9 @@ const Resolutions = () => {
       });
       toast.success('Task marked as resolved with proof!');
       setIsModalOpen(false);
-      fetchResolutions();
+      fetchResolutions(); // Refresh the list
     } catch (error) {
-      toast.error('Failed to resolve task.');
+      toast.error(error.response?.data?.error || 'Failed to resolve task.');
     }
   };
 
@@ -87,7 +89,7 @@ const Resolutions = () => {
                   <p className="task-description">{task.description || 'No specific description provided.'}</p>
                   <span className={`status-text ${task.status.toLowerCase()}`}>{task.status}</span>
                 </div>
-                {task.status === 'Assigned' && (
+                {task.status !== 'Resolved' && (
                   <button 
                     onClick={() => openResolveModal(task)} 
                     className="btn btn-primary"
