@@ -1,30 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import ReCAPTCHA from 'react-google-recaptcha'; // Import ReCAPTCHA
 import { FaPaperPlane } from 'react-icons/fa';
 import dashboardHeroImage from '/src/assets/issue.png';
 import './ReportIssue.css';
-import QrReportFlow from '../../../components/Report/QrReportFlow'; // Import the new QR component
+import QrReportFlow from '../../../components/Report/QrReportFlow'; // Import the QR component
 
 const ReportIssue = () => {
   const [searchParams] = useSearchParams();
   const qrBinId = searchParams.get('binId');
 
-  // --- THIS IS THE NEW ROUTING LOGIC ---
-  // If a binId is found in the URL from a QR scan, render the specialized QR workflow component.
+  // If a binId exists in the URL, render the QR code workflow component.
   if (qrBinId) {
     return <QrReportFlow qrBinId={qrBinId} />;
   }
-  // --- END OF ROUTING LOGIC ---
 
-
-  // --- MANUAL REPORT FORM LOGIC (Now back in this file) ---
+  // --- MANUAL REPORT FORM LOGIC ---
   const [issueType, setIssueType] = useState('');
   const [formData, setFormData] = useState({ binId: '', description: '' });
   const [photo, setPhoto] = useState(null);
   const [binSuggestions, setBinSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
+  
+  // State and Ref for reCAPTCHA
+  const [recaptchaToken, setRecaptchaToken] = useState(null);
+  const recaptchaRef = useRef();
 
   const handleIssueChange = (e) => setIssueType(e.target.value);
   const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -38,16 +40,16 @@ const ReportIssue = () => {
         const token = localStorage.getItem('token');
         const { data } = await axios.get(`/api/bins/search?term=${term}`, { headers: { Authorization: `Bearer ${token}` } });
         setBinSuggestions(data.data.map(bin => bin.binId));
-      } catch (error) {
-        console.error("Bin search failed", error);
-      }
-    } else {
-      setBinSuggestions([]);
-    }
+      } catch (error) { console.error("Bin search failed", error); }
+    } else { setBinSuggestions([]); }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!recaptchaToken) {
+        toast.error("Please verify that you are not a robot.");
+        return;
+    }
     if (!photo) { toast.error("Please upload a photo."); return; }
     setLoading(true);
 
@@ -56,6 +58,7 @@ const ReportIssue = () => {
     submissionData.append('binId', formData.binId);
     submissionData.append('description', formData.description);
     submissionData.append('photo', photo);
+    submissionData.append('recaptchaToken', recaptchaToken); // Add the token
 
     try {
       const token = localStorage.getItem('token');
@@ -67,14 +70,17 @@ const ReportIssue = () => {
       setIssueType('');
       setFormData({ binId: '', description: '' });
       setPhoto(null);
+      recaptchaRef.current.reset(); // Reset reCAPTCHA
+      setRecaptchaToken(null);
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to submit report.');
+      recaptchaRef.current.reset();
+      setRecaptchaToken(null);
     } finally {
       setLoading(false);
     }
   };
 
-  // The JSX for the manual report form
   return (
     <div className="report-issue-page container fade-in"> 
       <header className="page-header" style={{ backgroundImage: `url(${dashboardHeroImage})` }}>
@@ -112,6 +118,15 @@ const ReportIssue = () => {
             <label htmlFor="photo">Upload a Photo (Required)</label>
             <input type="file" id="photo" name="photo" onChange={handleFileChange} accept="image/*" required />
           </div>
+
+          <div className="form-group recaptcha-container">
+            <ReCAPTCHA
+              ref={recaptchaRef}
+              sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+              onChange={(token) => setRecaptchaToken(token)}
+            />
+          </div>
+
           <button type="submit" className="btn btn-primary btn-submit" disabled={loading}>
             {loading ? 'Submitting...' : <><FaPaperPlane /> Submit Report</>}
           </button>
