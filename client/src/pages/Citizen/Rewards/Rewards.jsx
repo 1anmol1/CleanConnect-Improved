@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import useScrollToTop from '../../../hooks/useScrollToTop';
 import axios from 'axios';
 import { FaUsers } from 'react-icons/fa';
 import { GiTwoCoins } from "react-icons/gi";
@@ -9,6 +10,7 @@ import dashboardHeroImage from '/src/assets/rewards.png';
 import './Rewards.css';
 
 const Rewards = () => {
+  useScrollToTop();
   const { user } = useAuth();
   const [leaderboard, setLeaderboard] = useState([]);
   const [userStats, setUserStats] = useState({ cleanCoins: 0 });

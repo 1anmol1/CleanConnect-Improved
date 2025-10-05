@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import useScrollToTop from '../../../hooks/useScrollToTop';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { FaBell, FaTrash, FaInfoCircle } from 'react-icons/fa';
@@ -9,6 +10,7 @@ import dashboardHeroImage from '/src/assets/notification.png';
 import './Notifications.css';
 
 const Notifications = () => {
+  useScrollToTop();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();

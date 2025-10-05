@@ -1,13 +1,9 @@
 import express from 'express';
-import { handleChat, handleGuestChat } from '../controllers/aiController.js';
-import { protect } from '../middleware/authMiddleware.js';
-
 const router = express.Router();
+import { protect } from '../middleware/authMiddleware.js';
+import { processChatMessage } from '../controllers/aiController.js'; // Updated function name
 
-// This route is for logged-in users and is now protected by the middleware.
-router.post('/chat', protect, handleChat);
-
-// This route is for guest users and has no protection.
-router.post('/guest-chat', handleGuestChat);
+// The endpoint remains the same, but it's now connected to a real AI brain
+router.route('/chat').post(protect, processChatMessage);
 
 export default router;

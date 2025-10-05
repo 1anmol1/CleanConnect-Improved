@@ -103,9 +103,28 @@ export const getBinById = asyncHandler(async (req, res) => {
  * @access  Private
  */
 export const getChildBins = asyncHandler(async (req, res) => {
-  const children = await Bin.find({ parentBin: req.params.id });
-  res.json({ success: true, data: children });
+  // 1. Get the parent bin's MongoDB ID from the URL parameter.
+  const parentId = req.params.id;
+
+  if (!parentId) {
+    res.status(400);
+    throw new Error("Parent bin ID is required.");
+  }
+
+  // 2. Find all documents in the 'Bin' collection where the 'parentBin' field
+  //    exactly matches the ID of the parent.
+  const children = await Bin.find({ parentBin: parentId });
+
+  // 3. This check is crucial.
+  if (children) {
+    res.json({ success: true, data: children });
+  } else {
+    // This case is unlikely but is good for robustness.
+    res.json({ success: true, data: [] }); // Send an empty array if none are found.
+  }
 });
+
+
 
 /**
  * @desc    Manually update the status of a child bin
@@ -161,5 +180,7 @@ export const findNearestEmptyBin = asyncHandler(async (req, res) => {
     res.status(404).json({ success: false, message: 'No nearby empty bins found.' });
   }
 });
+
+
 
 

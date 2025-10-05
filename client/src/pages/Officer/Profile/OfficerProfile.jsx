@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import useScrollToTop from '../../../hooks/useScrollToTop';
 import axios from 'axios';
 import { FaUsers, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
 import { useAuth } from '../../../hooks/useAuth.js';
@@ -7,6 +8,7 @@ import profileImage from '/src/assets/profile.jpg';
 import './OfficerProfile.css';
 
 const OfficerProfile = () => {
+  useScrollToTop();
   const { user } = useAuth();
   const [stats, setStats] = useState({ workersManaged: 0, complaintsVerified: 0, pendingComplaints: 0 });
   const [loading, setLoading] = useState(true);

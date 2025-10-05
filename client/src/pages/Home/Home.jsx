@@ -1,10 +1,12 @@
 import React from 'react';
+import useScrollToTop from '../../hooks/useScrollToTop';
 import { Link } from 'react-router-dom';
 import { FaBroadcastTower, FaRoute, FaUsers, FaArrowRight } from 'react-icons/fa';
 import heroImage from '../../assets/hero.png';
 import './Home.css';
 
 const Home = () => {
+  useScrollToTop();
   return (
     <div className="home-page">
       {/* Hero Section */}

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import useScrollToTop from '../../../hooks/useScrollToTop';
 import { useNavigate } from 'react-router-dom';
 import { useJsApiLoader } from '@react-google-maps/api';
 import { FaListOl, FaRoute, FaSync, FaTrash, FaCheckCircle } from 'react-icons/fa';
@@ -20,6 +21,7 @@ const mockBinsData = [
 ];
 
 const Directions = () => {
+  useScrollToTop();
   const navigate = useNavigate();
   const { location: workerLocation, loading: locationLoading } = useWorkerLocation();
   const [optimizedRoute, setOptimizedRoute] = useState(null);
@@ -33,62 +35,21 @@ const Directions = () => {
 
   const { isLoaded } = useJsApiLoader({ googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY });
   
-  useEffect(() => {
-    const fetchAndMergeBins = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const { data } = await axios.get('/api/bins', { headers: { Authorization: `Bearer ${token}` } });
-            const realBins = data.data || [];
-            const realBinsMap = new Map(realBins.map(bin => [bin.binId, bin]));
-            const mergedBins = mockBinsData.map(mockBin => {
-                const realBinData = realBinsMap.get(mockBin.binId);
-                return realBinData ? { ...mockBin, fillLevel: realBinData.fillLevel, status: realBinData.status } : mockBin;
-            });
-            setCurrentBins(mergedBins);
-        } catch (error) {
-            console.error("Failed to fetch live bin data, using fallback mock data.", error);
-            setCurrentBins(mockBinsData);
-        } finally {
-            setInitialLoading(false);
-        }
-    };
-    
-    fetchAndMergeBins();
-    const intervalId = setInterval(fetchAndMergeBins, 15000);
-    return () => clearInterval(intervalId);
-  }, []);
+  // This function contains the core optimization logic.
+  // Using useCallback prevents it from being recreated on every render, which is more efficient.
+  const runRouteOptimization = useCallback(() => {
+    if (!workerLocation || !isLoaded || currentBins.length === 0) return;
 
-  useEffect(() => {
-    if (isLoaded && workerLocation && !initialLoading) {
-      runRouteOptimization();
-    }
-  }, [isLoaded, workerLocation, currentBins, initialLoading]);
-
-  const toggleStageForDeletion = (binId) => { setBinsToDelete(prev => prev.includes(binId) ? prev.filter(id => id !== binId) : [...prev, binId]); };
-  
-  const handleConfirmDeletion = () => {
-    const remainingBins = currentBins.filter(bin => !binsToDelete.includes(bin._id));
-    setBinsToDelete([]);
-    setOptimizedRoute(null);
-    setCurrentBins(remainingBins);
-    toast.success(`${binsToDelete.length} bin(s) removed. Re-optimizing route...`);
-  };
-
-  const runRouteOptimization = () => {
-    if (!workerLocation) return;
-    if (currentBins.length === 0) {
+    if (currentBins.length < 2) {
       setOptimizedRoute({ stops: [] });
-      setRouteSummary(`No bins available for routing.`);
+      setRouteSummary(`Not enough bins to generate a route.`);
       return;
     }
     setIsOptimizing(true);
     const directionsService = new window.google.maps.DirectionsService();
     const waypoints = currentBins.map(bin => ({ location: { lat: bin.location.coordinates[1], lng: bin.location.coordinates[0] }, stopover: true }));
     
-    // Use the first waypoint as the destination for a more logical end point
-    const destination = waypoints.pop().location; 
-
-    directionsService.route({ origin: workerLocation, destination: destination, waypoints, optimizeWaypoints: true, travelMode: window.google.maps.TravelMode.DRIVING }, (result, status) => {
+    directionsService.route({ origin: workerLocation, destination: workerLocation, waypoints, optimizeWaypoints: true, travelMode: window.google.maps.TravelMode.DRIVING }, (result, status) => {
       if (status === window.google.maps.DirectionsStatus.OK) {
         const route = result.routes[0];
         const orderedStops = route.waypoint_order.map(i => currentBins[i]);
@@ -105,32 +66,61 @@ const Directions = () => {
       }
       setIsOptimizing(false);
     });
-  };
+  }, [workerLocation, currentBins, isLoaded]); // Dependencies for the optimization function
 
   // --- THE FIX IS HERE ---
-  const handleStartRoute = () => {
-    if (!optimizedRoute || !workerLocation) {
-        toast.error("Route has not been optimized yet.");
-        return;
+  // This useEffect now only fetches the initial data ONCE when the component mounts.
+  // The setInterval has been removed to stop the auto-refreshing.
+  useEffect(() => {
+    const fetchInitialData = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const { data } = await axios.get('/api/bins', { headers: { Authorization: `Bearer ${token}` } });
+            const realBins = data.data || [];
+            const realBinsMap = new Map(realBins.map(bin => [bin.binId, bin]));
+            const mergedBins = mockBinsData.map(mockBin => {
+                const realBinData = realBinsMap.get(mockBin.binId);
+                return realBinData ? { ...mockBin, fillLevel: realBinData.fillLevel, status: realBinData.status } : mockBin;
+            });
+            setCurrentBins(mergedBins);
+        } catch (error) {
+            console.error("Failed to fetch bin data, using fallback.", error);
+            setCurrentBins(mockBinsData);
+        } finally {
+            setInitialLoading(false);
+        }
+    };
+    
+    fetchInitialData();
+  }, []); // The empty dependency array ensures this runs only once.
+
+  // This second useEffect triggers the route optimization only when the necessary data is ready.
+  useEffect(() => {
+    if (isLoaded && workerLocation && !initialLoading) {
+      runRouteOptimization();
     }
-    
-    // 1. Format the worker's location as the origin
-    const origin = `${workerLocation.lat},${workerLocation.lng}`;
-    
-    // 2. Format all bin locations as waypoints, separated by a pipe character
-    const waypoints = optimizedRoute.stops
-      .map(stop => `${stop.location.coordinates[1]},${stop.location.coordinates[0]}`)
-      .join('|');
-      
-    // 3. Construct the final Google Maps URL
-    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${origin}&waypoints=${waypoints}`;
-    
-    // 4. Open the URL in a new browser tab. On mobile, this will launch the Google Maps app.
-    window.open(googleMapsUrl, '_blank');
-    
-    // 5. Navigate to the in-app checklist page
-    navigate('/worker/navigation', { state: { route: optimizedRoute.stops, workerLocation } });
+  }, [isLoaded, workerLocation, initialLoading, runRouteOptimization]);
+  
+  const toggleStageForDeletion = (binIdToToggle) => {
+    setBinsToDelete(prevStagedBins => {
+      const isStaged = prevStagedBins.includes(binIdToToggle);
+      if (isStaged) {
+        return prevStagedBins.filter(id => id !== binIdToToggle);
+      } else {
+        return [...prevStagedBins, binIdToToggle];
+      }
+    });
   };
+  
+  const handleConfirmDeletion = () => {
+    const remainingBins = currentBins.filter(bin => !binsToDelete.includes(bin._id));
+    setBinsToDelete([]);
+    setOptimizedRoute(null);
+    setCurrentBins(remainingBins); // This state change will trigger the optimization useEffect
+    toast.success(`${binsToDelete.length} bin(s) removed. Re-optimizing route...`);
+  };
+
+  const handleStartRoute = () => { if (optimizedRoute) { navigate('/worker/navigation', { state: { route: optimizedRoute.stops, workerLocation } }); } };
   
   if (!isLoaded || locationLoading || initialLoading) {
     return <Loader text="Generating your optimized route for today..." />;
@@ -189,3 +179,4 @@ const Directions = () => {
 };
 
 export default Directions;
+

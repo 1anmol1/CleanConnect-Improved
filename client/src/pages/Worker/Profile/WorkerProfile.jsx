@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import useScrollToTop from '../../../hooks/useScrollToTop';
 import axios from 'axios';
 import { FaClipboardCheck, FaTasks, FaChartLine } from 'react-icons/fa';
 import { useAuth } from '../../../hooks/useAuth.js';
@@ -7,6 +8,7 @@ import profileImage from '/src/assets/profile.jpg';
 import './WorkerProfile.css';
 
 const WorkerProfile = () => {
+  useScrollToTop();
   const { user } = useAuth();
   const [stats, setStats] = useState({ resolvedTasks: 0, assignedTasks: 0, efficiency: '0%' });
   const [loading, setLoading] = useState(true);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import useScrollToTop from '../../../hooks/useScrollToTop';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../../hooks/useAuth.js';
@@ -7,6 +8,7 @@ import '../../Shared/SharedForm.css';
 import './CreateNotification.css';
 
 const CreateNotification = () => {
+  useScrollToTop();
   const [formData, setFormData] = useState({
     title: '',
     message: '',

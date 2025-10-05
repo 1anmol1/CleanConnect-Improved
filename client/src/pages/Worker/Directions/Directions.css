@@ -1,134 +1,163 @@
-.directions-page { padding: 40px 20px; }
-
-/* === EDITED: Added Header Styles === */
-.page-header {
-  position: relative;
+/* --- Base Page Styles --- */
+.directions-page .page-header {
   text-align: center;
-  margin-bottom: 40px;
-  padding: 60px 20px;
-  border-radius: var(--border-radius);
-  background-size: cover;
-  background-position: center;
-  color: white;
-  overflow: hidden;
+  margin-bottom: 2rem;
 }
 
-.page-header::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(45deg, rgba(20, 20, 20, 0.8), rgba(60, 60, 60, 0.6));
-  z-index: 1;
+.route-summary {
+  font-size: 1.1rem;
+  color: var(--text-color-light);
+  font-weight: 500;
 }
 
-.page-header h1,
-.page-header p {
-  position: relative;
-  z-index: 2;
-  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+/* --- THE EDIT: New wrapper to control layout size --- */
+.directions-content-wrapper {
+  max-width: 1200px; /* Reduce max width for a smaller feel */
+  margin: 0 auto;    /* Center the content */
 }
 
-.page-header h1 {
-    color: white;
-}
-/* === End of Header Styles === */
-
+/* --- Main two-column grid layout --- */
 .directions-layout {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 30px;
+  grid-template-columns: 1fr 1fr; /* Make both columns equal width */
+  gap: 2rem;
+  align-items: start;
 }
+
+/* --- Map Panel Styles --- */
 .map-panel {
-  min-height: 500px;
+  padding: 1rem;
+  /* THE EDIT: Make the panel a perfect square */
+  aspect-ratio: 1 / 1; 
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--surface-color);
-  overflow: hidden; 
-  padding: 0; 
 }
-.route-list-panel h3 {
-  margin-bottom: 20px;
+
+/* --- Route List Panel Styles --- */
+.route-list-panel {
+  padding: 0; /* Remove default card padding to manage internal scrolling */
+  /* THE EDIT: Make the panel a perfect square and handle its content flow */
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Hide overflow from the container itself */
+}
+
+.route-list-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0; /* Prevent header from shrinking */
+}
+
+.route-list-header h3 {
+  margin: 0;
   display: flex;
   align-items: center;
   gap: 10px;
 }
-.route-list { 
-    list-style: none;
-    padding: 0;
-}
-.route-item {
+
+.route-buttons {
   display: flex;
-  align-items: center;
-  gap: 15px;
-  padding: 15px;
-  border-bottom: 1px solid var(--border-color);
+  gap: 0.5rem;
+  flex-wrap: wrap; /* Allow buttons to wrap on small screens */
 }
-.route-item:last-child { border-bottom: none; }
+
+.route-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  /* THE EDIT: Make the list scrollable within its square container */
+  overflow-y: auto;
+  flex-grow: 1; /* Allow the list to fill the remaining vertical space */
+  padding: 1rem;
+}
+
+.route-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s ease;
+}
+
+.route-item:last-child {
+  border-bottom: none;
+}
+
+.route-item:hover {
+  background-color: var(--surface-color);
+}
+
 .route-number {
-  background-color: var(--primary-color);
-  color: white;
-  font-weight: 700;
-  width: 35px;
-  height: 35px;
+  background-color: var(--surface-color);
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  font-weight: 700;
+  color: var(--primary-color);
+  border: 1px solid var(--border-color);
 }
+
 .route-details {
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
 }
-.route-details span { font-size: 0.9rem; color: var(--text-color-light); }
-.route-status { font-weight: 600; font-size: 0.9rem; }
-.status-full, .status-overflow { color: #dc3545; }
+.route-details strong {
+  font-weight: 600;
+}
+.route-details span {
+  font-size: 0.9rem;
+  color: var(--text-color-light);
+}
 
+.route-status {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+  text-transform: capitalize;
+}
+.status-full { background-color: #f8d7da; color: #721c24; }
+.status-half-full { background-color: #fff3cd; color: #856404; }
+.status-empty { background-color: #d4edda; color: #155724; }
+
+/* --- Deletion Feature Styles --- */
 .btn-delete-bin {
-  background: none;
-  border: none;
-  color: #adb5bd; /* A light grey */
-  cursor: pointer;
-  font-size: 1rem;
-  padding: 0.5rem;
-  margin-left: 1rem;
-  border-radius: 50%;
+  background: none; border: none; color: #adb5bd; cursor: pointer;
+  font-size: 1rem; padding: 0.5rem; margin-left: 1rem; border-radius: 50%;
   transition: all 0.2s ease;
 }
+.btn-delete-bin:hover { color: #dc3545; background-color: #f8d7da; }
 
-.btn-delete-bin:hover {
-  color: #dc3545; /* Red on hover */
-  background-color: #f8d7da;
-}
-
-/* Style for the list item when it's marked for deletion */
 .route-item.marked-for-deletion {
   background-color: #fff5f5;
   opacity: 0.6;
 }
-
 .route-item.marked-for-deletion .route-details {
   text-decoration: line-through;
   color: #721c24;
 }
-
 .route-item.marked-for-deletion .btn-delete-bin {
   color: #dc3545;
   background-color: #f8d7da;
 }
 
-/* Style for the "Confirm Deletions" button */
-.btn-danger {
-  background-color: #dc3545;
-  color: white;
-  border: none;
+/* --- Mobile Responsiveness --- */
+@media (max-width: 960px) {
+  .directions-layout {
+    grid-template-columns: 1fr; /* Stack columns on mobile */
+  }
+  
+  .map-panel, .route-list-panel {
+    aspect-ratio: auto; /* Remove square aspect ratio */
+    height: 400px; /* Set a fixed height for mobile */
+  }
 }
-
-.btn-danger:hover {
-  background-color: #c82333;
-}
-
-@media (max-width: 960px) { .directions-layout { grid-template-columns: 1fr; } }

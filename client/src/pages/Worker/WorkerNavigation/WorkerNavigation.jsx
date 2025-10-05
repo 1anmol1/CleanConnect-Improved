@@ -1,23 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import useScrollToTop from '../../../hooks/useScrollToTop';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { FaCheck, FaArrowRight, FaHome } from 'react-icons/fa';
+import { FaCheck, FaArrowRight, FaHome, FaDirections } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import MapComponent from '../../../components/Map/MapComponent';
 import Loader from '../../../components/Loader/Loader';
 import './WorkerNavigation.css';
 
 const WorkerNavigation = () => {
+  useScrollToTop();
   const navigate = useNavigate();
   const location = useLocation();
-  const { route, workerLocation } = location.state || {}; // Get data from navigation state
+  const { route, workerLocation } = location.state || {};
 
   const [currentStopIndex, setCurrentStopIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // If no route data is passed (e.g., user reloads the page), redirect back.
     if (!route || route.length === 0) {
-      toast.error("No route data found. Redirecting to route planner.");
+      toast.error("No route data found. Redirecting...");
       navigate('/worker/directions');
     } else {
       setLoading(false);
@@ -25,16 +26,38 @@ const WorkerNavigation = () => {
   }, [route, navigate]);
 
   if (loading) {
-    return <Loader text="Loading route checklist..." />;
+    return <Loader text="Loading navigation checklist..." />;
   }
 
   const currentStop = route[currentStopIndex];
   const isLastStop = currentStopIndex === route.length - 1;
 
-  const handleNextStop = () => {
-    // In a real app, you would send an API call here to update the bin's status
-    toast.info(`Marked Bin ${currentStop.binId} as collected.`);
+  // THE FIX: This function now generates the Google Maps URL for the entire remaining route
+  const handleLaunchNavigation = () => {
+    if (!workerLocation) {
+        toast.error("Current location not available.");
+        return;
+    }
+
+    // Start navigation from the worker's current location
+    const origin = `${workerLocation.lat},${workerLocation.lng}`;
     
+    // Include all REMAINING stops in the route
+    const remainingStops = route.slice(currentStopIndex);
+    const waypoints = remainingStops
+      .map(stop => `${stop.location.coordinates[1]},${stop.location.coordinates[0]}`)
+      .join('|');
+      
+    // The final destination is the last stop on the list
+    const destination = `${remainingStops[remainingStops.length - 1].location.coordinates[1]},${remainingStops[remainingStops.length - 1].location.coordinates[0]}`;
+
+    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${waypoints}`;
+    
+    window.open(googleMapsUrl, '_blank');
+  };
+
+  const handleNextStop = () => {
+    toast.info(`Marked Bin ${currentStop.binId} as collected.`);
     if (!isLastStop) {
       setCurrentStopIndex(prevIndex => prevIndex + 1);
     } else {
@@ -46,19 +69,16 @@ const WorkerNavigation = () => {
   return (
     <div className="worker-navigation-page container">
       <div className="navigation-header">
-        <h1>Route Progress</h1>
-        <p>Mark bins as collected after visiting them using your navigation app.</p>
+        <h1>Live Route Checklist</h1>
+        <p>Use the buttons below to navigate and track your progress.</p>
       </div>
       <div className="navigation-layout">
         <div className="nav-map-panel card">
           <MapComponent
-            center={{
-              lat: currentStop.location.coordinates[1],
-              lng: currentStop.location.coordinates[0],
-            }}
-            markers={[currentStop]} // Only show the current stop marker
-            workerLocation={workerLocation} // Show worker's initial location for context
-            zoom={16} // Zoom in closer on the target bin
+            center={{ lat: currentStop.location.coordinates[1], lng: currentStop.location.coordinates[0] }}
+            markers={[currentStop]}
+            workerLocation={workerLocation}
+            zoom={16}
           />
         </div>
         <div className="nav-details-panel card">
@@ -71,13 +91,18 @@ const WorkerNavigation = () => {
             </div>
           </div>
           <div className="nav-actions">
+            {/* The new, prominent navigation button */}
+            <button className="btn-launch-nav" onClick={handleLaunchNavigation}>
+              <FaDirections /> Open Navigation in Google Maps
+            </button>
+            
             {isLastStop ? (
               <button className="btn-complete-route" onClick={handleNextStop}>
                 <FaCheck /> Mark Final Stop as Collected
               </button>
             ) : (
               <button className="btn-next-stop" onClick={handleNextStop}>
-                Mark as Collected & View Next Stop <FaArrowRight />
+                Mark as Collected & View Next <FaArrowRight />
               </button>
             )}
             <button className="btn-end-route" onClick={() => navigate('/worker/dashboard')}>
@@ -90,4 +115,4 @@ const WorkerNavigation = () => {
   );
 };
 
-export default WorkerNavigation;  
+export default WorkerNavigation;

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import useScrollToTop from '../../../hooks/useScrollToTop';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import Loader from '../../../components/Loader/Loader.jsx';
@@ -6,6 +7,7 @@ import dashboardHeroImage from '/src/assets/complain.png';
 import './NewComplaint.css'; 
 
 const NewComplaint = () => {
+  useScrollToTop();
   const [issueType, setIssueType] = useState('');
   const [formData, setFormData] = useState({
     binId: '',

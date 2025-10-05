@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import useScrollToTop from '../../../hooks/useScrollToTop';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
@@ -8,6 +9,7 @@ import dashboardHeroImage from '/src/assets/resolution.png';
 import './Resolutions.css';
 
 const Resolutions = () => {
+  useScrollToTop();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);

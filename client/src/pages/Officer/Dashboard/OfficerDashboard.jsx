@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import useScrollToTop from '../../../hooks/useScrollToTop';
 import { FaUsers, FaTools, FaMapMarkerAlt } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth.js'; // Import useAuth to get user info
@@ -29,6 +30,7 @@ const getBinStatus = (fillLevel) => {
 };
 
 const OfficerDashboard = () => {
+  useScrollToTop();
   const { user } = useAuth(); // Get the logged-in officer's data
   const [bins, setBins] = useState([]);
   const [loading, setLoading] = useState(true);

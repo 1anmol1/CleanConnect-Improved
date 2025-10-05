@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import useScrollToTop from '../../../hooks/useScrollToTop';
 import { useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -9,6 +10,7 @@ import './ReportIssue.css';
 import QrReportFlow from '../../../components/Report/QrReportFlow'; // Import the QR component
 
 const ReportIssue = () => {
+  useScrollToTop();
   const [searchParams] = useSearchParams();
   const qrBinId = searchParams.get('binId');
 

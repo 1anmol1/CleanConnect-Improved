@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import useScrollToTop from '../../../hooks/useScrollToTop';
 import { FaTrophy, FaHistory, FaUserEdit } from 'react-icons/fa';
 import ComplaintHistory from '../../../components/Profile/ComplaintHistory';
 import ProfileOverview from '../../../components/Profile/ProfileOverview';
 import './Profile.css';
 
 const Profile = () => {
+  useScrollToTop();
   const [activeTab, setActiveTab] = useState('overview');
 
   return (

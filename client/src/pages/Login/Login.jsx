@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import useScrollToTop from '../../hooks/useScrollToTop';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth.js';
@@ -6,6 +7,7 @@ import { toast } from 'react-toastify';
 import './Login.css';
 
 const Login = () => {
+  useScrollToTop();
   const [isLoginView, setIsLoginView] = useState(true);
   const [activeRole, setActiveRole] = useState('Citizen');
   const [formData, setFormData] = useState({ 

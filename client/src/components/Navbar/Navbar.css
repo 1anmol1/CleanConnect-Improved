@@ -241,6 +241,79 @@
   color: var(--primary-color);
 }
 
+
+/* --- Officer Quick Actions Menu --- */
+
+.officer-actions-container {
+  position: relative; /* This is the anchor for the dropdown menu */
+}
+
+.officer-actions-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  font-size: 1.2rem;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.officer-actions-btn:hover {
+  background-color: #eef2f7;
+  border-color: var(--primary-color);
+}
+
+.officer-actions-menu {
+  position: absolute;
+  top: 120%; /* Position it just below the button */
+  right: 0;
+  width: 220px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  z-index: 1001;
+  
+  /* Animation for appearing/disappearing */
+  opacity: 0;
+  transform: translateY(10px);
+  visibility: hidden;
+  pointer-events: none;
+  transition: all 0.2s ease-out;
+}
+
+.officer-actions-menu.open {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.officer-actions-menu a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: var(--text-color);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.officer-actions-menu a:hover {
+  background-color: var(--surface-color);
+  color: var(--primary-color);
+}
+
+.officer-actions-menu a:not(:last-child) {
+  border-bottom: 1px solid var(--border-color);
+}
+
 /* This media query makes the button appear on screens smaller than 960px */
 @media screen and (max-width: 960px) {
   .qr-scan-btn {

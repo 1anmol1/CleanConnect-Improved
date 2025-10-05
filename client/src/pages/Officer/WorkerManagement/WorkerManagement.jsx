@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import useScrollToTop from '../../../hooks/useScrollToTop';
 import { FaUserPlus, FaPhone } from 'react-icons/fa';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -8,6 +9,7 @@ import dashboardHeroImage from '../../../assets/workerdash.png';
 import './WorkerManagement.css';
 
 const WorkerManagement = () => {
+  useScrollToTop();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);

@@ -1,10 +1,12 @@
 import React from 'react';
+import useScrollToTop from '../../../hooks/useScrollToTop';
 import { FaRoute, FaExclamationCircle, FaCheckDouble } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import dashboardHeroImage from '/src/assets/workerdash.png'; // Import the local hero image
 import './WorkerDashboard.css';
 
 const WorkerDashboard = () => {
+  useScrollToTop();
   return (
     <div className="worker-dashboard-page container fade-in">
       <header 

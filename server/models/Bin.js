@@ -26,14 +26,13 @@ const binSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  // --- NEW & UPDATED FIELDS ---
   isSmartBin: {
     type: Boolean,
-    default: true, // Existing bins are smart bins
+    default: true,
   },
   parentBin: {
     type: mongoose.Schema.ObjectId,
-    ref: 'Bin', // This links a child bin to its parent smart bin
+    ref: 'Bin',
   },
   fillLevel: { // For smart bins, updated by ESP32
     type: Number,
@@ -41,15 +40,14 @@ const binSchema = new mongoose.Schema({
     max: 100,
     default: 0,
   },
-  manualStatus: { // For child bins, updated by authorized citizens
-    type: String,
-    enum: ['Empty', 'Half-Full', 'Full'],
-    default: 'Empty',
+  // THE FIX: Replaced 'manualStatus' with a numeric field
+  manualFillLevel: { // For child bins, updated by authorized citizens
+    type: Number,
+    default: 0,
   },
   lastManualUpdate: {
     type: Date,
   },
-  // -------------------------
   status: {
     type: String,
     enum: ['Empty', 'Half-Full', 'Full', 'Overflow', 'Maintenance'],
@@ -66,3 +64,4 @@ binSchema.index({ location: '2dsphere' });
 
 const Bin = mongoose.model('Bin', binSchema);
 export default Bin;
+
