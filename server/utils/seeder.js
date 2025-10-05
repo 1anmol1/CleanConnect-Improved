@@ -2,12 +2,9 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
 
-// --- THE FIX IS HERE ---
-// This line now correctly loads the .env file from the root of your 'server' directory.
-// It assumes your .env file is located at /server/.env
 dotenv.config();
 
-// Load models (ensure these paths are correct relative to the seeder.js file)
+// Load models
 import User from '../models/User.js';
 import Bin from '../models/Bin.js';
 import Complaint from '../models/Complaint.js';
@@ -15,7 +12,6 @@ import Area from '../models/Area.js';
 
 const connectDB = async () => {
   try {
-    // This will now correctly find process.env.MONGO_URI
     const conn = await mongoose.connect(process.env.MONGO_URI);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
@@ -43,46 +39,28 @@ const importData = async () => {
 
     // --- Create Users (WITH HASHED PASSWORDS) ---
     const usersToCreate = [
-      // Citizens
-      { 
-        name: 'Anjali', email: 'citizen.pune@test.com', 
-        password: await bcrypt.hash('password123', 10), 
-        role: 'Citizen', city: 'Pune', area: 'Kothrud', addressLine: '123 Kothrud Lane', location: 'Kothrud, Pune'
-      },
-      { 
-        name: 'Rohan', email: 'citizen.kop@test.com', 
-        password: await bcrypt.hash('password123', 10), 
-        role: 'Citizen', city: 'Kolhapur', area: 'Shahupuri', addressLine: '456 Shahupuri Road', location: 'Shahupuri, Kolhapur'
-      },
-      // Workers
-      { 
-        name: 'Suresh', email: 'worker.pune@test.com', workerId: 'WKR-PUNE-01', 
-        password: await bcrypt.hash('password123', 10), 
-        role: 'Worker', city: 'Pune', area: 'Kothrud'
-      },
-      { 
-        name: 'Amit', email: 'worker.mumbai@test.com', workerId: 'WKR-MUM-01', 
-        password: await bcrypt.hash('password123', 10), 
-        role: 'Worker', city: 'Mumbai', area: 'Andheri'
-      },
-      // Officers
-      { 
-        name: 'Priya', email: 'officer.pune@test.com', 
-        password: await bcrypt.hash('password123', 10), 
-        role: 'Officer', city: 'Pune'
-      },
-      { 
-        name: 'Vikram', email: 'officer.mumbai@test.com', 
-        password: await bcrypt.hash('password123', 10), 
-        role: 'Officer', city: 'Mumbai'
-      },
+      { name: 'Anjali', email: 'citizen.pune@test.com', password: await bcrypt.hash('password123', 10), role: 'Citizen', city: 'Pune', area: 'Kothrud', addressLine: '123 Kothrud Lane', location: 'Kothrud, Pune' },
+      { name: 'Rohan', email: 'citizen.kop@test.com', password: await bcrypt.hash('password123', 10), role: 'Citizen', city: 'Kolhapur', area: 'Shahupuri', addressLine: '456 Shahupuri Road', location: 'Shahupuri, Kolhapur' },
+      { name: 'Suresh', email: 'worker.pune@test.com', workerId: 'WKR-PUNE-01', password: await bcrypt.hash('password123', 10), role: 'Worker', city: 'Pune', area: 'Kothrud' },
+      { name: 'Amit', email: 'worker.mumbai@test.com', workerId: 'WKR-MUM-01', password: await bcrypt.hash('password123', 10), role: 'Worker', city: 'Mumbai', area: 'Andheri' },
+      { name: 'Priya', email: 'officer.pune@test.com', password: await bcrypt.hash('password123', 10), role: 'Officer', city: 'Pune' },
+      { name: 'Vikram', email: 'officer.mumbai@test.com', password: await bcrypt.hash('password123', 10), role: 'Officer', city: 'Mumbai' },
     ];
     await User.insertMany(usersToCreate);
     console.log('Users Imported!');
 
-    // --- Create Bins ---
+    // --- THE FIX: Create all 10 Kothrud Bins ---
     const binsToCreate = [
-        { binId: 'PUNE-KTD-01', location: { type: 'Point', coordinates: [73.8076, 18.5074] }, city: 'Pune', area: 'Kothrud', status: 'Half-Full' },
+        { binId: "PUNE-KTD-01", area: "Kothrud", city: 'Pune', location: { type: 'Point', coordinates: [73.8041, 18.5074] }, fillLevel: 95, status: "Full" },
+        { binId: "PUNE-KTD-02", area: "Kothrud", city: 'Pune', location: { type: 'Point', coordinates: [73.8012, 18.5099] }, fillLevel: 96, status: "Full" },
+        { binId: "PUNE-KTD-03", area: "Kothrud", city: 'Pune', location: { type: 'Point', coordinates: [73.7985, 18.5055] }, fillLevel: 96, status: "Half-Full" },
+        { binId: "PUNE-KTD-04", area: "Kothrud", city: 'Pune', location: { type: 'Point', coordinates: [73.8088, 18.5123] }, fillLevel: 45, status: "Empty" },
+        { binId: "PUNE-KTD-05", area: "Kothrud", city: 'Pune', location: { type: 'Point', coordinates: [73.7921, 18.4988] }, fillLevel: 25, status: "Empty" },
+        { binId: "PUNE-KTD-06", area: "Kothrud", city: 'Pune', location: { type: 'Point', coordinates: [73.8115, 18.5021] }, fillLevel: 98, status: "Full" },
+        { binId: "PUNE-KTD-07", area: "Kothrud", city: 'Pune', location: { type: 'Point', coordinates: [73.7889, 18.5145] }, fillLevel: 60, status: "Empty" },
+        { binId: "PUNE-KTD-08", area: "Kothrud", city: 'Pune', location: { type: 'Point', coordinates: [73.8050, 18.4965] }, fillLevel: 30, status: "Empty" },
+        { binId: "PUNE-KTD-09", area: "Kothrud", city: 'Pune', location: { type: 'Point', coordinates: [73.8155, 18.5085] }, fillLevel: 88, status: "Half-Full" },
+        { binId: "PUNE-KTD-10", area: "Kothrud", city: 'Pune', location: { type: 'Point', coordinates: [73.7953, 18.5112] }, fillLevel: 55, status: "Empty" },
         { binId: 'MUM-AND-01', location: { type: 'Point', coordinates: [72.8681, 19.1197] }, city: 'Mumbai', area: 'Andheri', status: 'Full' },
     ];
     await Bin.insertMany(binsToCreate);

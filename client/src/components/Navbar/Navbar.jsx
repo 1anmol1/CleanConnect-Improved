@@ -1,12 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { FaBars, FaTimes, FaUserCircle, FaBell } from 'react-icons/fa';
+// 1. IMPORT THE NEW QR CODE ICON
+import { FaBars, FaTimes, FaUserCircle, FaBell, FaQrcode } from 'react-icons/fa';
 import { useAuth } from '../../hooks/useAuth.js';
+// 2. IMPORT THE SCANNER MODAL (you will create this component)
+import QrScannerModal from '../../components/Modals/QrScannerModal.jsx';
 import logo from '../../assets/logo.png';
 import './Navbar.css';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  // 3. ADD STATE TO CONTROL THE SCANNER MODAL
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const { user, logout } = useAuth();
   const navRef = useRef();
 
@@ -32,6 +37,7 @@ const Navbar = () => {
     };
   }, [isOpen]);
 
+  // This function remains unchanged
   const getNavLinks = () => {
     if (!user) { return []; }
     
@@ -63,97 +69,83 @@ const Navbar = () => {
   };
 
   const allLinks = getNavLinks();
-
-  // --- THE FIX IS ON THIS LINE ---
-  // The filter now only removes the link with the EXACT title "Notifications".
-  // This will correctly leave "Send Notification" for the Officer.
   const desktopNavLinks = allLinks.filter(link => link.title !== 'Notifications');
-  
   const notificationLink = allLinks.find(link => link.title === 'Notifications');
   const isBellVisible = user && (user.role === 'Citizen' || user.role === 'Worker');
   const profileLink = user ? `/${user.role.toLowerCase()}/profile` : '/login';
 
   return (
-    <nav className="navbar" ref={navRef}>
-      <div className="navbar-container container">
-        <Link to="/" className="navbar-logo" onClick={closeMenu}>
-          <img src={logo} alt="CleanConnect Logo" className="navbar-main-logo" />
-          <div className="logo-text">
-            <span className="project-name">CleanConnect</span>
-            <span className="tagline">Smart Sanitation Portal</span>
-          </div>
-        </Link>
+    // We use a React Fragment to render the modal as a sibling to the nav
+    <>
+      <nav className="navbar" ref={navRef}>
+        <div className="navbar-container container">
+          <Link to="/" className="navbar-logo" onClick={closeMenu}>
+            <img src={logo} alt="CleanConnect Logo" className="navbar-main-logo" />
+            <div className="logo-text">
+              <span className="project-name">CleanConnect</span>
+              <span className="tagline">Smart Sanitation Portal</span>
+            </div>
+          </Link>
 
-        {/* The desktop menu will now correctly display "Send Notification" for the officer */}
-        <ul className="nav-menu-desktop">
-          {desktopNavLinks.map((link) => (
-            <li className="nav-item" key={link.title}>
-              <NavLink to={link.path} className="nav-link">{link.title}</NavLink>
-            </li>
-          ))}
-        </ul>
-
-        <div className="header-actions">
-          {user ? (
-            <>
-              {isBellVisible && notificationLink && (
-                <NavLink to={notificationLink.path} className="nav-link-icon notification-bell">
-                  <FaBell />
-                </NavLink>
-              )}
-              <div className="user-info">
-                <NavLink to={profileLink} className="user-profile-link">
-                  <FaUserCircle />
-                  <span>{user.name}</span>
-                </NavLink>
-                <button onClick={handleLogout} className="btn btn-logout">Logout</button>
-              </div>
-            </>
-          ) : (
-            <Link to="/login" onClick={closeMenu}>
-              <button className="btn btn-primary">Login / Register</button>
-            </Link>
-          )}
-          <div className="menu-icon" onClick={toggleMenu}>{isOpen ? <FaTimes /> : <FaBars />}</div>
-        </div>
-
-        {/* The mobile menu logic remains the same and is already correct */}
-        <div className={`nav-menu-mobile-container ${isOpen ? 'active' : ''}`}>
-          <ul className="nav-menu-mobile">
-            {user && (
-              <li className="nav-item nav-item-profile">
-                <NavLink to={profileLink} className="nav-link" onClick={closeMenu}>Profile</NavLink>
+          <ul className="nav-menu-desktop">
+            {desktopNavLinks.map((link) => (
+              <li className="nav-item" key={link.title}>
+                <NavLink to={link.path} className="nav-link">{link.title}</NavLink>
               </li>
-            )}
-            
-            {allLinks.map((link) => {
-              if (isBellVisible && link.title === 'Notifications') {
-                return null;
-              }
-              return (
-                <li className="nav-item" key={link.title}>
-                  <NavLink to={link.path} className="nav-link" onClick={closeMenu}>
-                    {link.title}
-                  </NavLink>
-                </li>
-              );
-            })}
-
-            {user ? (
-              <li className="nav-item nav-item-logout">
-                <button onClick={handleLogout} className="logout-button">Logout</button>
-              </li>
-            ) : (
-              <li className="nav-item nav-item-login">
-                <Link to="/login" onClick={closeMenu}>
-                  <button className="btn btn-primary btn-small">Login / Register</button>
-                </Link>
-              </li>
-            )}
+            ))}
           </ul>
+
+          <div className="header-actions">
+            {user ? (
+              <>
+                {/* 4. ADD THE QR SCANNER BUTTON */}
+                {/* It will only render if the user is a Citizen */}
+                {user.role === 'Citizen' && (
+                  <button onClick={() => setIsScannerOpen(true)} className="nav-link-icon qr-scan-btn" title="Scan Bin QR Code">
+                    <FaQrcode />
+                  </button>
+                )}
+                
+                {isBellVisible && notificationLink && (
+                  <NavLink to={notificationLink.path} className="nav-link-icon notification-bell">
+                    <FaBell />
+                  </NavLink>
+                )}
+                <div className="user-info">
+                  <NavLink to={profileLink} className="user-profile-link">
+                    <FaUserCircle />
+                    <span>{user.name}</span>
+                  </NavLink>
+                  <button onClick={handleLogout} className="btn btn-logout">Logout</button>
+                </div>
+              </>
+            ) : (
+              <Link to="/login" onClick={closeMenu}>
+                <button className="btn btn-primary">Login / Register</button>
+              </Link>
+            )}
+            <div className="menu-icon" onClick={toggleMenu}>{isOpen ? <FaTimes /> : <FaBars />}</div>
+          </div>
+
+          <div className={`nav-menu-mobile-container ${isOpen ? 'active' : ''}`}>
+            {/* The mobile menu dropdown remains completely unchanged */}
+            <ul className="nav-menu-mobile">
+              {user && ( <li className="nav-item nav-item-profile"><NavLink to={profileLink} className="nav-link" onClick={closeMenu}>Profile</NavLink></li> )}
+              {allLinks.map((link) => {
+                if (isBellVisible && link.title === 'Notifications') { return null; }
+                return ( <li className="nav-item" key={link.title}><NavLink to={link.path} className="nav-link" onClick={closeMenu}>{link.title}</NavLink></li> );
+              })}
+              {user ? ( <li className="nav-item nav-item-logout"><button onClick={handleLogout} className="logout-button">Logout</button></li>
+              ) : ( <li className="nav-item nav-item-login"><Link to="/login" onClick={closeMenu}><button className="btn btn-primary btn-small">Login / Register</button></Link></li> )}
+            </ul>
+          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+      
+      {/* 5. RENDER THE SCANNER MODAL */}
+      {/* It will only be visible when isScannerOpen is true */}
+      <QrScannerModal isOpen={isScannerOpen} onClose={() => setIsScannerOpen(false)} />
+    </>
   );
 };
 

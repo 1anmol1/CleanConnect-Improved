@@ -1,14 +1,25 @@
 import React, { useState } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../../../hooks/useAuth.js';
 import { FaPaperPlane } from 'react-icons/fa';
 import dashboardHeroImage from '/src/assets/issue.png';
 import './ReportIssue.css';
+import QrReportFlow from '../../../components/Report/QrReportFlow'; // Import the new QR component
 
 const ReportIssue = () => {
-  const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const qrBinId = searchParams.get('binId');
+
+  // --- THIS IS THE NEW ROUTING LOGIC ---
+  // If a binId is found in the URL from a QR scan, render the specialized QR workflow component.
+  if (qrBinId) {
+    return <QrReportFlow qrBinId={qrBinId} />;
+  }
+  // --- END OF ROUTING LOGIC ---
+
+
+  // --- MANUAL REPORT FORM LOGIC (Now back in this file) ---
   const [issueType, setIssueType] = useState('');
   const [formData, setFormData] = useState({ binId: '', description: '' });
   const [photo, setPhoto] = useState(null);
@@ -23,60 +34,50 @@ const ReportIssue = () => {
     const term = e.target.value;
     setFormData(prev => ({ ...prev, binId: term }));
     if (term.length > 2) {
-        try {
-            const token = localStorage.getItem('token');
-            const { data } = await axios.get(`/api/bins/search?term=${term}`, { headers: { Authorization: `Bearer ${token}` } });
-            setBinSuggestions(data.data.map(bin => bin.binId));
-        } catch (error) {
-            console.error("Bin search failed", error);
-        }
+      try {
+        const token = localStorage.getItem('token');
+        const { data } = await axios.get(`/api/bins/search?term=${term}`, { headers: { Authorization: `Bearer ${token}` } });
+        setBinSuggestions(data.data.map(bin => bin.binId));
+      } catch (error) {
+        console.error("Bin search failed", error);
+      }
     } else {
-        setBinSuggestions([]);
+      setBinSuggestions([]);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!photo) {
-        toast.error("Please upload a photo as proof of the issue.");
-        return;
-    }
+    if (!photo) { toast.error("Please upload a photo."); return; }
     setLoading(true);
 
-    // THE FIX: Use FormData to properly handle file uploads
     const submissionData = new FormData();
     submissionData.append('issueType', issueType);
     submissionData.append('binId', formData.binId);
     submissionData.append('description', formData.description);
-    submissionData.append('photo', photo); // 'photo' must match the backend middleware
+    submissionData.append('photo', photo);
 
     try {
       const token = localStorage.getItem('token');
       const { data } = await axios.post('/api/complaints', submissionData, {
-        headers: {
-          'Content-Type': 'multipart/form-data', // This header is crucial
-          Authorization: `Bearer ${token}`
-        }
+        headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` }
       });
       toast.success(data.message || 'Report submitted successfully!');
-      // Reset the form on success
       e.target.reset();
       setIssueType('');
       setFormData({ binId: '', description: '' });
       setPhoto(null);
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to submit report. Please try again.');
+      toast.error(error.response?.data?.error || 'Failed to submit report.');
     } finally {
       setLoading(false);
     }
   };
 
+  // The JSX for the manual report form
   return (
     <div className="report-issue-page container fade-in"> 
-      <header 
-        className="page-header"
-        style={{ backgroundImage: `url(${dashboardHeroImage})` }}
-      >
+      <header className="page-header" style={{ backgroundImage: `url(${dashboardHeroImage})` }}>
         <h1>Lodge a Grievance</h1>
         <p>Help us keep your city clean by providing details below.</p>
       </header>
@@ -99,15 +100,13 @@ const ReportIssue = () => {
           {(issueType === 'Overflowing Bin' || issueType === 'Damaged Bin') && (
             <div className="form-group">
               <label htmlFor="binId">Bin ID (if known)</label>
-              <input type="text" id="binId" name="binId" value={formData.binId} onChange={handleBinIdChange} placeholder="Type to search for Bin ID..." list="bin-suggestions" required />
-              <datalist id="bin-suggestions">
-                {binSuggestions.map(id => <option key={id} value={id} />)}
-              </datalist>
+              <input type="text" id="binId" name="binId" value={formData.binId} onChange={handleBinIdChange} placeholder="Type to search..." list="bin-suggestions" required />
+              <datalist id="bin-suggestions">{binSuggestions.map(id => <option key={id} value={id} />)}</datalist>
             </div>
           )}
           <div className="form-group">
             <label htmlFor="description">Description</label>
-            <textarea id="description" name="description" value={formData.description} onChange={handleChange} rows="4" placeholder="Provide more details about the issue..." required></textarea>
+            <textarea id="description" name="description" value={formData.description} onChange={handleChange} rows="4" required></textarea>
           </div>
           <div className="form-group">
             <label htmlFor="photo">Upload a Photo (Required)</label>
@@ -123,3 +122,4 @@ const ReportIssue = () => {
 };
 
 export default ReportIssue;
+

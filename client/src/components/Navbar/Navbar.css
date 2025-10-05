@@ -224,6 +224,31 @@
   display: none;
 }
 
+/* --- QR SCANNER BUTTON STYLES (Mobile Only) --- */
+
+.qr-scan-btn {
+  display: none; /* Hidden on desktop by default */
+  font-size: 1.6rem;
+  color: var(--nav-text-light);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.qr-scan-btn:hover {
+  color: var(--primary-color);
+}
+
+/* This media query makes the button appear on screens smaller than 960px */
+@media screen and (max-width: 960px) {
+  .qr-scan-btn {
+    display: flex;
+    align-items: center;
+  }
+}
+
 /* On screens wider than 768px, show the text */
 @media (min-width: 768px) {
   .nav-text {
