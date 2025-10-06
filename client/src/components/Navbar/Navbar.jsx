@@ -86,7 +86,7 @@ const Navbar = () => {
   const desktopNavLinks = allLinks.filter(link => link.title !== 'Notifications');
   const notificationLink = allLinks.find(link => link.title === 'Notifications');
   const isBellVisible = user && (user.role === 'Citizen' || user.role === 'Worker');
-  const profileLink = user ? `/${user.role.toLowerCase()}/profile` : '/login';
+  const profileLink = user && user.role ? `/${user.role.toLowerCase()}/profile` : '/login';
 
   return (
     <>

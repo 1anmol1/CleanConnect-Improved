@@ -6,31 +6,47 @@ const userSchema = mongoose.Schema(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    // THE FIX: Add indexes to the fields you search by
     role: { 
       type: String, 
       required: true, 
       enum: ['Citizen', 'Worker', 'Officer'], 
       default: 'Citizen',
-      index: true // This creates the "card catalog" for role
+      index: true 
     },
     city: { 
       type: String, 
       required: true,
-      index: true // This creates the "card catalog" for city
+      index: true 
     },
-    // ... other fields
     addressLine: { type: String },
     location: { type: String },
     area: { type: String },
     cleanCoins: { type: Number, required: true, default: 0 },
     workerId: { type: String, unique: true, sparse: true },
+    
+    // --- NEW FIELDS FOR ATTENDANCE & LIVE TRACKING ---
+    lastCheckIn: {
+      type: Date, // Stores the timestamp of the worker's last attendance check-in
+    },
+    liveLocation: {
+      type: {
+        type: String,
+        enum: ['Point'], // GeoJSON type
+      },
+      coordinates: {
+        type: [Number], // [Longitude, Latitude]
+      }
+    },
+    // ----------------------------------------------------
   },
   { timestamps: true }
 );
 
-// This is a compound index, which is even faster for combined queries
+// This is a compound index for faster queries combining city and role.
 userSchema.index({ city: 1, role: 1 });
+
+// NEW: This is a geospatial index for finding users (workers) by location.
+userSchema.index({ liveLocation: '2dsphere' });
 
 // Password hashing and matching logic (no changes needed here)
 userSchema.pre('save', async function (next) {
