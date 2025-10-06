@@ -44,6 +44,16 @@ export const loginUser = asyncHandler(async (req, res) => {
     if (user.role !== role) {
       res.status(401); throw new Error(`Invalid credentials for ${role} portal.`);
     }
+
+    // --- THIS IS THE NEW LOGIC FOR SMART ATTENDANCE ---
+    // If the logged-in user is a Worker, update their status to 'Online'.
+    if (user.role === 'Worker') {
+      user.attendanceStatus = 'Online';
+      await user.save();
+      console.log(`Worker ${user.name} logged in. Status set to Online.`);
+    }
+    // -----------------------------------------------------
+
     res.json({
       success: true,
       user: { _id: user._id, name: user.name, email: user.email, role: user.role, city: user.city },

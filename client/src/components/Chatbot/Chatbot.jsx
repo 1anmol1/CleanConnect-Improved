@@ -1,50 +1,66 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { FaTimes, FaPaperPlane, FaChevronDown, FaExclamationTriangle, FaGift, FaRoute, FaCheckCircle, FaChartBar, FaUsers } from 'react-icons/fa';
+import { 
+    FaTimes, FaPaperPlane, FaChevronDown, FaExclamationTriangle, 
+    FaGift, FaRoute, FaCheckCircle, FaChartBar, FaUsers, FaRecycle, FaCoins, 
+    FaTrash, FaShieldAlt, FaWrench, FaUserPlus, FaMicrophone // 1. Import FaMicrophone
+} from 'react-icons/fa';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import chatbotIcon from '../../assets/ai.png';
 import './Chatbot.css';
 
-// Defines all possible smart action buttons for each role
+// The 'allRoleActions' object remains the same, defining the smart buttons
 const allRoleActions = {
   Citizen: [
     { label: 'Report a New Issue', path: '/citizen/report', icon: <FaExclamationTriangle /> },
     { label: 'View My Rewards', path: '/citizen/rewards', icon: <FaGift /> },
-    { label: 'Check Last Report Status', query: 'action:last_report_status' },
-    { label: 'How do I earn points?', query: 'How do I earn CleanCoins?' },
+    { label: 'Check Last Report Status', query: 'action:last_report_status', icon: <FaCheckCircle /> },
+    { label: 'How do I earn CleanCoins?', query: 'How do I earn points for reporting?', icon: <FaCoins /> },
+    { label: 'What is recycling?', query: 'What is recycling and why is it important?', icon: <FaRecycle /> },
+    { label: 'How to segregate waste?', query: 'How should I segregate my household waste?', icon: <FaTrash /> },
   ],
   Worker: [
     { label: 'View My Optimized Route', path: '/worker/directions', icon: <FaRoute /> },
     { label: 'See My Resolutions', path: '/worker/resolutions', icon: <FaCheckCircle /> },
-    { label: 'Summarize My Day', query: 'Summarize my day' },
-    { label: 'Report Route Blockage', query: 'What should I do if a route is blocked?' },
+    { label: 'Summarize My Daily Tasks', query: 'Summarize my day', icon: <FaChartBar /> },
+    { label: 'Report a Route Blockage', query: 'What should I do if a road on my route is blocked?', icon: <FaExclamationTriangle /> },
+    { label: 'Safety guidelines for handling waste?', query: 'What are the safety guidelines for handling waste?', icon: <FaShieldAlt /> },
+    { label: 'How to report a damaged bin?', query: 'How do I report a bin that is damaged?', icon: <FaWrench /> },
   ],
   Officer: [
     { label: 'Go to Complaint Management', path: '/officer/complaints', icon: <FaChartBar /> },
-    { label: 'Manage Worker Assignments', path: '/officer/manage-workers', icon: <FaUsers /> },
-    { label: 'Get City Stats Summary', query: 'Give me a summary of city-wide stats' },
-    { label: 'How do I add a new worker?', query: 'How do I add a new worker?' },
+    { label: 'Add or Manage Workers', path: '/officer/manage-workers', icon: <FaUsers /> },
+    { label: 'Get City Stats Summary', query: 'Give me a summary of city-wide stats', icon: <FaChartBar /> },
+    { label: 'How do I add a new worker?', query: 'How do I add a new worker to the system?', icon: <FaUserPlus /> },
+    { label: 'What is the oldest pending complaint?', query: 'What is the oldest unresolved complaint in the system?', icon: <FaExclamationTriangle /> },
+    { label: 'Generate a worker performance report', query: 'Generate a performance report for all workers this week.', icon: <FaChartBar /> },
   ],
 };
 
-// A smart component to parse the AI's response and render navigation buttons
-const AIMessageParser = ({ text }) => {
+// The AIMessageParser component remains the same
+const AIMessageParser = ({ text, setIsOpen }) => {
   const navigate = useNavigate();
-  const navTokenRegex = /__NAVIGATE_TO__\('([^']*)',\s*'([^']*)'\)/;
+  const navTokenRegex = /__NAVIGATE_TO__\('([^']*)',\s*'([^']*)'(?:,\s*({.*}))?\)/;
   const match = text.match(navTokenRegex);
 
   if (!match) return <p>{text}</p>;
+  
+  const [path, label, stateString] = match.slice(1);
+  const state = stateString ? JSON.parse(stateString) : undefined;
 
-  const handleNav = () => navigate(match[1]);
+  const handleNav = () => {
+    navigate(path, { state });
+    setIsOpen(false);
+  };
   const cleanText = text.replace(navTokenRegex, '').trim();
 
   return (
     <div>
-      <p>{cleanText}</p>
+      {cleanText && <p>{cleanText}</p>}
       <div className="action-buttons" style={{ padding: '10px 0 0 0' }}>
-        <button onClick={handleNav}>{match[2]}</button>
+        <button onClick={handleNav}>{label}</button>
       </div>
     </div>
   );
@@ -55,12 +71,31 @@ const Chatbot = () => {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [areActionsVisible, setAreActionsVisible] = useState(true); // State for the minimizable tray
+  const [areActionsVisible, setAreActionsVisible] = useState(true);
+  const [actionButtonIndex, setActionButtonIndex] = useState(0);
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const chatBoxRef = useRef(null);
   const chatbotRef = useRef(null);
+
+  // --- NEW: State and Refs for Voice Recognition ---
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeechSupported, setIsSpeechSupported] = useState(false);
+  const recognitionRef = useRef(null);
+  const speechTimeoutRef = useRef(null); // For the auto-send feature
+
+  // This effect checks for browser support for the Web Speech API on mount.
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      setIsSpeechSupported(true);
+      recognitionRef.current = new SpeechRecognition();
+    } else {
+      setIsSpeechSupported(false);
+      console.warn("Speech recognition not supported in this browser.");
+    }
+  }, []);
 
   useEffect(() => {
     if (chatBoxRef.current) chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
@@ -74,9 +109,9 @@ const Chatbot = () => {
 
   useEffect(() => {
     if (isOpen) {
-      setMessages([{ sender: 'ai', text: `Hello, ${user?.name.split(' ')[0] || 'Guest'}! How can I help?` }]);
+      setMessages([{ sender: 'ai', text: `Hello, ${user?.name.split(' ')[0] || 'Guest'}! How can I assist?` }]);
     } else {
-      setMessages([]); // Reset chat when closed
+      setMessages([]); setAreActionsVisible(true); setActionButtonIndex(0);
     }
   }, [isOpen, user]);
 
@@ -92,24 +127,73 @@ const Chatbot = () => {
       });
       setMessages(prev => [...prev, { sender: 'ai', text: data.reply }]);
     } catch (error) {
-      setMessages(prev => [...prev, { sender: 'ai', text: "I'm having trouble connecting to my AI brain." }]);
+      setMessages(prev => [...prev, { sender: 'ai', text: "I'm having trouble connecting to my AI brain right now." }]);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // --- NEW: Voice Recognition Handler ---
+  const handleListen = () => {
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const recognition = recognitionRef.current;
+    recognition.continuous = true; // Keep listening even after pauses
+    recognition.interimResults = true; // Get results as the user speaks
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      toast.info("Listening...");
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.onerror = (event) => {
+      toast.error(`Speech recognition error: ${event.error}`);
+      setIsListening(false);
+    };
+
+    recognition.onresult = (event) => {
+      // Clear the auto-send timer every time new speech is detected
+      clearTimeout(speechTimeoutRef.current);
+      
+      const transcript = Array.from(event.results)
+        .map(result => result[0])
+        .map(result => result.transcript)
+        .join('');
+      
+      setInputValue(transcript); // Update the input box in real-time
+
+      // Set a timer to auto-send if the user pauses for 2 seconds
+      speechTimeoutRef.current = setTimeout(() => {
+        recognition.stop();
+        if (transcript.trim()) {
+          handleSendMessage(transcript);
+        }
+      }, 2000); // 2-second pause
+    };
+    
+    recognition.start();
+  };
+
   const handleSubmit = (e) => { e.preventDefault(); handleSendMessage(inputValue); };
+  const handleActionClick = (action) => { handleSendMessage(action.query); setActionButtonIndex(prev => prev + 1); };
   
-  // This function gets the 4 smartest buttons for the user's context
   const getCurrentActions = () => {
     if (!user) return [];
     const allActions = allRoleActions[user.role] || [];
-    const navActions = allActions.filter(a => a.path);
+    const navActions = allActions.filter(a => a.path).filter(a => a.path !== location.pathname).slice(0, 2);
     const dataActions = allActions.filter(a => a.query);
-    // Filter out the nav button for the page the user is currently on
-    const relevantNavActions = navActions.filter(a => a.path !== location.pathname);
-    // Take the top 2 of each category
-    return [...relevantNavActions.slice(0, 2), ...dataActions.slice(0, 2)];
+    const dataIndex = actionButtonIndex % dataActions.length;
+    const nextDataIndex = (dataIndex + 1) % dataActions.length;
+    const relevantDataActions = [dataActions[dataIndex], dataActions[nextDataIndex]].filter(Boolean);
+    return [...navActions, ...relevantDataActions];
   };
 
   const currentActions = getCurrentActions();
@@ -121,7 +205,7 @@ const Chatbot = () => {
         <ul className="chatbox" ref={chatBoxRef}>
           {messages.map((msg, index) => (
             <li key={index} className={`chat ${msg.sender}`}>
-              {msg.sender === 'ai' ? <AIMessageParser text={msg.text} /> : <p>{msg.text}</p>}
+              {msg.sender === 'ai' ? <AIMessageParser text={msg.text} setIsOpen={setIsOpen} /> : <p>{msg.text}</p>}
             </li>
           ))}
           {isLoading && <li className="chat ai"><p className="thinking-indicator"><span></span><span></span><span></span></p></li>}
@@ -134,9 +218,9 @@ const Chatbot = () => {
             </button>
             {areActionsVisible && (
               <div className="action-buttons">
-                {currentActions.map(({ label, path, query, icon }) => (
-                  <button key={label} onClick={() => path ? (navigate(path), setIsOpen(false)) : handleSendMessage(query)}>
-                    {icon} {label}
+                {currentActions.map((action) => (
+                  <button key={action.label} onClick={() => action.path ? (navigate(action.path), setIsOpen(false)) : handleActionClick(action)}>
+                    {action.icon} {action.label}
                   </button>
                 ))}
               </div>
@@ -146,6 +230,17 @@ const Chatbot = () => {
         
         <div className="chatbot-input-box">
           <form onSubmit={handleSubmit} style={{ width: '100%', display: 'flex', gap: '10px' }}>
+            {/* --- THE NEW MICROPHONE BUTTON --- */}
+            {isSpeechSupported && user && (
+              <button 
+                type="button" 
+                onClick={handleListen}
+                className={`mic-btn ${isListening ? 'listening' : ''}`}
+                title="Speak to Chatbot"
+              >
+                <FaMicrophone />
+              </button>
+            )}
             <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder="Type a message..." disabled={isLoading || !user} />
             <button type="submit" disabled={isLoading || !user} className="send-btn"><FaPaperPlane /></button>
           </form>

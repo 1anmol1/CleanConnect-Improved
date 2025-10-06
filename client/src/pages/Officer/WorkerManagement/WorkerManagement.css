@@ -2,7 +2,7 @@
   padding: 40px 20px; 
 }
 
-/* --- UPDATED: Page Header with Hero Image --- */
+/* --- Page Header with Hero Image --- */
 .worker-management-page .page-header {
   position: relative;
   display: flex;
@@ -66,18 +66,29 @@
   color: var(--text-color-light);
 }
 
+/* --- THE FIX: Updated Status Badge Styles --- */
 .status-badge {
   padding: 5px 12px;
   border-radius: 20px;
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.status-on-duty { background-color: #d4edda; color: #155724; }
-.status-off-duty { background-color: #f8d7da; color: #721c24; }
+/* Renamed from .status-on-duty to match the JSX component */
+.status-badge.present { 
+  background-color: #d4edda; /* Light green */
+  color: #155724; /* Dark green */
+}
 
+/* Renamed from .status-off-duty and changed color for clarity */
+.status-badge.absent { 
+  background-color: #e2e3e5; /* Light grey */
+  color: #383d41; /* Dark grey */
+}
+
+/* --- Action Button Styles --- */
 .btn-action {
   background: none;
   border: 1px solid var(--border-color);

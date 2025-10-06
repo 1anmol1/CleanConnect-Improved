@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-// THE FIX: Import 'MarkerF' instead of 'AdvancedMarkerElement'
-import { GoogleMap, useJsApiLoader, OverlayView, PolylineF, MarkerF } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, OverlayView, PolylineF } from '@react-google-maps/api';
 import CustomInfoWindow from './CustomInfoWindow'; 
-import { FaTrashAlt } from 'react-icons/fa';
+import { FaTrashAlt, FaTruck } from 'react-icons/fa';
 import './MapComponent.css';
 
-// Custom Marker for Dustbins (This uses OverlayView and is already perfect)
-const CustomMarker = ({ marker, onMarkerClick }) => {
+// --- Sub-Components for Different Marker Types ---
+
+// 1. Dustbin Marker (No changes here)
+const DustbinMarker = ({ marker, onMarkerClick }) => {
   let color = '#5cb85c';
   if (marker.fillLevel >= 90) color = '#d9534f';
   else if (marker.fillLevel >= 70) color = '#f0ad4e';
@@ -23,45 +24,72 @@ const CustomMarker = ({ marker, onMarkerClick }) => {
   );
 };
 
-const MapComponent = ({ center, markers, routeCoordinates = [], zoom = 14, workerLocation = null }) => {
+// 2. Sanitation Vehicle Marker (No changes here)
+const VehicleMarker = ({ vehicle }) => {
+  if (!vehicle.liveLocation?.coordinates) return null;
+  const position = {
+    lat: vehicle.liveLocation.coordinates[1],
+    lng: vehicle.liveLocation.coordinates[0],
+  };
+
+  return (
+    <OverlayView position={position} mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}>
+      <div className="vehicle-marker-container" title={`Worker: ${vehicle.name}`}>
+        <div className="vehicle-icon"><FaTruck /></div>
+      </div>
+    </OverlayView>
+  );
+};
+
+// --- THE FIX IS IN THIS COMPONENT ---
+// 3. "You are here" User Marker (Upgraded)
+// It now renders both a label (the dialogue box) and the pulsing dot.
+const UserMarker = ({ position }) => {
+  return (
+    <OverlayView position={position} mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}>
+      <div className="user-location-container">
+        <div className="user-label">You are here</div>
+        <div className="user-dot"></div>
+      </div>
+    </OverlayView>
+  );
+};
+
+
+// --- The Main Map Component ---
+const MapComponent = ({ center, markers = [], routeCoordinates = [], userLocation = null, vehicles = [] }) => {
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
   });
 
   const [selectedMarker, setSelectedMarker] = useState(null);
 
-  if (loadError) return <div className="map-error">Map cannot be loaded.</div>;
+  if (loadError) return <div className="map-error">Map cannot be loaded. Please check your API key.</div>;
   if (!isLoaded) return <div className="map-loading">Loading Map...</div>;
-
-  // This is the icon for the worker's location dot
-  const workerIcon = {
-    path: window.google.maps.SymbolPath.CIRCLE,
-    scale: 8,
-    fillColor: '#4285F4',
-    fillOpacity: 1,
-    strokeWeight: 2,
-    strokeColor: 'white',
-  };
 
   return (
     <GoogleMap
       mapContainerClassName="map-container"
       center={center}
-      zoom={zoom}
+      zoom={14}
       options={{ streetViewControl: false, mapTypeControl: false, fullscreenControl: false }}
-      // The 'mapId' is not needed for MarkerF, so it's removed to prevent other errors.
     >
-      {/* Render dustbin markers using our custom overlay */}
+      {/* Render dustbin markers */}
       {markers.map((marker) => (
-        <CustomMarker key={marker.binId} marker={marker} onMarkerClick={setSelectedMarker} />
+        <DustbinMarker key={marker._id} marker={marker} onMarkerClick={setSelectedMarker} />
       ))}
 
-      {/* THE FIX: Use the stable <MarkerF> component for the worker's location dot */}
-      {workerLocation && (
-        <MarkerF position={workerLocation} icon={workerIcon} zIndex={100} />
+      {/* Render live sanitation vehicle markers */}
+      {vehicles.map((vehicle) => (
+        <VehicleMarker key={vehicle._id} vehicle={vehicle} />
+      ))}
+
+      {/* Render the "You are here" marker for the current user */}
+      {userLocation && (
+        <UserMarker position={userLocation} />
       )}
       
-      {/* The CustomInfoWindow now receives the full marker object */}
+      {/* Render the smart info window when a dustbin is selected */}
       {selectedMarker && (
         <CustomInfoWindow 
           bin={selectedMarker} 
@@ -69,7 +97,7 @@ const MapComponent = ({ center, markers, routeCoordinates = [], zoom = 14, worke
         />
       )}
       
-      {/* Polyline for the route */}
+      {/* Render the worker's route polyline if provided */}
       {routeCoordinates.length > 0 && (
         <PolylineF path={routeCoordinates} options={{ strokeColor: '#007BFF', strokeOpacity: 0.8, strokeWeight: 5 }} />
       )}

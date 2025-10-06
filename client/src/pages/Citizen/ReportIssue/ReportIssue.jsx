@@ -1,18 +1,19 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useSearchParams, Link, useLocation } from 'react-router-dom'; // 1. Import useLocation
 import useScrollToTop from '../../../hooks/useScrollToTop';
-import { useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import ReCAPTCHA from 'react-google-recaptcha'; // Import ReCAPTCHA
+import ReCAPTCHA from 'react-google-recaptcha';
 import { FaPaperPlane } from 'react-icons/fa';
 import dashboardHeroImage from '/src/assets/issue.png';
 import './ReportIssue.css';
-import QrReportFlow from '../../../components/Report/QrReportFlow'; // Import the QR component
+import QrReportFlow from '../../../components/Report/QrReportFlow';
 
 const ReportIssue = () => {
   useScrollToTop();
   const [searchParams] = useSearchParams();
   const qrBinId = searchParams.get('binId');
+  const location = useLocation(); // 2. Initialize the hook to get navigation state
 
   // If a binId exists in the URL, render the QR code workflow component.
   if (qrBinId) {
@@ -26,9 +27,24 @@ const ReportIssue = () => {
   const [binSuggestions, setBinSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   
-  // State and Ref for reCAPTCHA
   const [recaptchaToken, setRecaptchaToken] = useState(null);
   const recaptchaRef = useRef();
+
+  // 3. THE FIX: This new useEffect runs once when the page loads.
+  // It checks if the AI chatbot sent any data in the navigation state.
+  useEffect(() => {
+    // location.state will contain the { issueType, description } object from the AI
+    if (location.state) {
+      // Update the form's state with the data from the AI
+      setIssueType(location.state.issueType || '');
+      setFormData(prevData => ({
+        ...prevData,
+        description: location.state.description || ''
+      }));
+      // Let the user know the form was pre-filled
+      toast.info("AI has pre-filled the form based on your conversation.");
+    }
+  }, [location.state]); // This dependency ensures the effect runs only when navigation state is present
 
   const handleIssueChange = (e) => setIssueType(e.target.value);
   const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -43,7 +59,9 @@ const ReportIssue = () => {
         const { data } = await axios.get(`/api/bins/search?term=${term}`, { headers: { Authorization: `Bearer ${token}` } });
         setBinSuggestions(data.data.map(bin => bin.binId));
       } catch (error) { console.error("Bin search failed", error); }
-    } else { setBinSuggestions([]); }
+    } else {
+      setBinSuggestions([]);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -60,7 +78,7 @@ const ReportIssue = () => {
     submissionData.append('binId', formData.binId);
     submissionData.append('description', formData.description);
     submissionData.append('photo', photo);
-    submissionData.append('recaptchaToken', recaptchaToken); // Add the token
+    submissionData.append('recaptchaToken', recaptchaToken);
 
     try {
       const token = localStorage.getItem('token');
@@ -72,7 +90,7 @@ const ReportIssue = () => {
       setIssueType('');
       setFormData({ binId: '', description: '' });
       setPhoto(null);
-      recaptchaRef.current.reset(); // Reset reCAPTCHA
+      recaptchaRef.current.reset();
       setRecaptchaToken(null);
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to submit report.');
@@ -86,8 +104,8 @@ const ReportIssue = () => {
   return (
     <div className="report-issue-page container fade-in"> 
       <header className="page-header" style={{ backgroundImage: `url(${dashboardHeroImage})` }}>
-        <h1>Lodge a Grievance</h1>
-        <p>Help us keep your city clean by providing details below.</p>
+        <h1>Report an Issue</h1>
+        <p>Help us clean your city by reporting issues and earn rewards.</p>
       </header>
       <div className="report-form-card">
         <div className="form-header">
@@ -139,4 +157,3 @@ const ReportIssue = () => {
 };
 
 export default ReportIssue;
-

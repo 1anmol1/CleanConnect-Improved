@@ -254,6 +254,52 @@
   animation: bob 1.5s infinite;
   margin: 0 2px;
 }
+
+.chatbot-input-box {
+  /* Adjust layout to accommodate the new button */
+  align-items: center;
+}
+
+.mic-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--surface-color);
+  color: var(--text-color-light);
+  border: 1px solid var(--border-color);
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.mic-btn:hover {
+  background-color: #eef2f7;
+  color: var(--primary-color);
+}
+
+/* "Listening" state for the microphone button */
+.mic-btn.listening {
+  background-color: #dc3545; /* Red */
+  color: white;
+  border-color: #dc3545;
+  animation: breathe 1.5s infinite ease-in-out;
+}
+
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+  }
+}
+
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(13, 34, 63, 0.4); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(13, 34, 63, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(13, 34, 63, 0); } }
 @keyframes message-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }

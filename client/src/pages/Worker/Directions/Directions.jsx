@@ -7,18 +7,9 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import MapComponent from '../../../components/Map/MapComponent.jsx';
 import Loader from '../../../components/Loader/Loader.jsx';
+import RouteOptimizationLoader from '../../../components/Loader/RouteOptimizationLoader.jsx'; // 1. Import the new animation loader
 import useWorkerLocation from '../../../hooks/useWorkerLocation.js';
 import './Directions.css';
-
-const mockBinsData = [
-    { _id: "60d5f1c7b54764421b7156e2", binId: "KTD-007", area: "Kothrud", location: { coordinates: [73.7889, 18.5145] }, fillLevel: 60, status: "Empty" },
-    { _id: "60d5f1c7b54764421b7156dc", binId: "PUNE-KTD-01", area: "Kothrud", location: { coordinates: [73.8041, 18.5074] }, fillLevel: 95, status: "Full" },
-    { _id: "60d5f1c7b54764421b7156de", binId: "KTD-003", area: "Kothrud", location: { coordinates: [73.7985, 18.5055] }, fillLevel: 75, status: "Half-Full" },
-    { _id: "60d5f1c7b54764421b7156e1", binId: "KTD-006", area: "Kothrud", location: { coordinates: [73.8115, 18.5021] }, fillLevel: 98, status: "Full" },
-    { _id: "60d5f1c7b54764421b7156dd", binId: "KTD-002", area: "Kothrud", location: { coordinates: [73.8012, 18.5099] }, fillLevel: 82, status: "Half-Full" },
-    { _id: "60d5f1c7b54764421b7156e5", binId: "KTD-010", area: "Kothrud", location: { coordinates: [73.7953, 18.5112] }, fillLevel: 55, status: "Empty" },
-    { _id: "60d5f1c7b54764421b7156e4", binId: "KTD-009", area: "Kothrud", location: { coordinates: [73.8155, 18.5085] }, fillLevel: 88, status: "Half-Full" },
-];
 
 const Directions = () => {
   useScrollToTop();
@@ -33,10 +24,11 @@ const Directions = () => {
   const [binsToDelete, setBinsToDelete] = useState([]);
   const [initialLoading, setInitialLoading] = useState(true);
 
+  // 2. NEW STATE: This controls whether to show the animation screen or the final map.
+  const [showOptimizationScreen, setShowOptimizationScreen] = useState(true);
+
   const { isLoaded } = useJsApiLoader({ googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY });
   
-  // This function contains the core optimization logic.
-  // Using useCallback prevents it from being recreated on every render, which is more efficient.
   const runRouteOptimization = useCallback(() => {
     if (!workerLocation || !isLoaded || currentBins.length === 0) return;
 
@@ -45,7 +37,8 @@ const Directions = () => {
       setRouteSummary(`Not enough bins to generate a route.`);
       return;
     }
-    setIsOptimizing(true);
+    // Set a different loading state here to show a different message
+    setIsOptimizing(true); 
     const directionsService = new window.google.maps.DirectionsService();
     const waypoints = currentBins.map(bin => ({ location: { lat: bin.location.coordinates[1], lng: bin.location.coordinates[0] }, stopover: true }));
     
@@ -66,40 +59,47 @@ const Directions = () => {
       }
       setIsOptimizing(false);
     });
-  }, [workerLocation, currentBins, isLoaded]); // Dependencies for the optimization function
+  }, [workerLocation, currentBins, isLoaded]);
 
-  // --- THE FIX IS HERE ---
-  // This useEffect now only fetches the initial data ONCE when the component mounts.
-  // The setInterval has been removed to stop the auto-refreshing.
+  // This useEffect fetches the initial data once. The polling is removed.
   useEffect(() => {
     const fetchInitialData = async () => {
         try {
             const token = localStorage.getItem('token');
             const { data } = await axios.get('/api/bins', { headers: { Authorization: `Bearer ${token}` } });
-            const realBins = data.data || [];
-            const realBinsMap = new Map(realBins.map(bin => [bin.binId, bin]));
-            const mergedBins = mockBinsData.map(mockBin => {
-                const realBinData = realBinsMap.get(mockBin.binId);
-                return realBinData ? { ...mockBin, fillLevel: realBinData.fillLevel, status: realBinData.status } : mockBin;
-            });
-            setCurrentBins(mergedBins);
+            const realBins = data.data.bins || [];
+            const smartBins = realBins.filter(bin => bin.isSmartBin);
+            setCurrentBins(smartBins);
         } catch (error) {
-            console.error("Failed to fetch bin data, using fallback.", error);
-            setCurrentBins(mockBinsData);
+            console.error("Failed to fetch bin data.", error);
+            toast.error("Could not load bin data.");
         } finally {
             setInitialLoading(false);
         }
     };
     
     fetchInitialData();
-  }, []); // The empty dependency array ensures this runs only once.
+  }, []); // Empty array ensures this runs only once.
 
-  // This second useEffect triggers the route optimization only when the necessary data is ready.
+  // 3. NEW: This function triggers the animation and then the actual optimization.
+  const handleStartOptimization = () => {
+    setIsOptimizing(true); // This starts the CSS animation in the loader component.
+
+    // Calculate a random animation duration between 5 and 8 seconds for a realistic feel.
+    const animationDuration = Math.floor(Math.random() * 3000) + 5000;
+
+    // After the animation is finished, hide the animation screen.
+    setTimeout(() => {
+      setShowOptimizationScreen(false);
+    }, animationDuration);
+  };
+  
+  // This useEffect triggers the REAL optimization only after the animation is hidden.
   useEffect(() => {
-    if (isLoaded && workerLocation && !initialLoading) {
+    if (!showOptimizationScreen && isLoaded && workerLocation && !initialLoading) {
       runRouteOptimization();
     }
-  }, [isLoaded, workerLocation, initialLoading, runRouteOptimization]);
+  }, [showOptimizationScreen, isLoaded, workerLocation, initialLoading, runRouteOptimization]);
   
   const toggleStageForDeletion = (binIdToToggle) => {
     setBinsToDelete(prevStagedBins => {
@@ -116,20 +116,33 @@ const Directions = () => {
     const remainingBins = currentBins.filter(bin => !binsToDelete.includes(bin._id));
     setBinsToDelete([]);
     setOptimizedRoute(null);
-    setCurrentBins(remainingBins); // This state change will trigger the optimization useEffect
+    setCurrentBins(remainingBins);
     toast.success(`${binsToDelete.length} bin(s) removed. Re-optimizing route...`);
   };
 
   const handleStartRoute = () => { if (optimizedRoute) { navigate('/worker/navigation', { state: { route: optimizedRoute.stops, workerLocation } }); } };
   
+  // While waiting for initial data, Google Maps, or user location...
   if (!isLoaded || locationLoading || initialLoading) {
-    return <Loader text="Generating your optimized route for today..." />;
-  }
-
-  if (!optimizedRoute || isOptimizing) {
-    return <Loader text="Optimizing route..." />;
+    return <Loader text="Preparing Route Planner..." />;
   }
   
+  // 4. If we are in the pre-optimization phase, show the new animation component.
+  if (showOptimizationScreen) {
+    return (
+      <RouteOptimizationLoader 
+        onStart={handleStartOptimization} 
+        isOptimizing={isOptimizing} 
+      />
+    );
+  }
+
+  // If the animation is done but we are still waiting for the route calculation...
+  if (!optimizedRoute || isOptimizing) {
+    return <Loader text="Finalizing Optimized Route..." />;
+  }
+  
+  // The final view with the map and list.
   return (
     <div className="directions-page container fade-in">
       <header className="page-header">
@@ -179,4 +192,3 @@ const Directions = () => {
 };
 
 export default Directions;
-

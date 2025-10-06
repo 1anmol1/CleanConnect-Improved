@@ -64,7 +64,7 @@ const Notifications = () => {
     <div className="notifications-page container fade-in">
       <header className="page-header" style={{ backgroundImage: `url(${dashboardHeroImage})` }}>
         <h1>Notifications</h1>
-        <p>Stay updated with local news and alerts.</p>
+        <p>Stay updated with campaign news and alerts about your reports.</p>
       </header>
       <div className="notifications-list">
         {notifications.length === 0 ? (

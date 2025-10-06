@@ -24,9 +24,13 @@ const userSchema = mongoose.Schema(
     cleanCoins: { type: Number, required: true, default: 0 },
     workerId: { type: String, unique: true, sparse: true },
     
-    // --- NEW FIELDS FOR ATTENDANCE & LIVE TRACKING ---
-    lastCheckIn: {
-      type: Date, // Stores the timestamp of the worker's last attendance check-in
+    // --- THE UPDATE IS HERE ---
+    // The old 'lastCheckIn' field has been replaced with the new 'attendanceStatus'.
+    attendanceStatus: {
+      type: String,
+      enum: ['Absent', 'Online', 'On Route', 'Route Completed', 'Offline'],
+      default: 'Absent', // The initial state for all workers.
+      index: true // Index this field for faster lookups of worker statuses.
     },
     liveLocation: {
       type: {
@@ -45,7 +49,7 @@ const userSchema = mongoose.Schema(
 // This is a compound index for faster queries combining city and role.
 userSchema.index({ city: 1, role: 1 });
 
-// NEW: This is a geospatial index for finding users (workers) by location.
+// This is a geospatial index for finding users (workers) by location.
 userSchema.index({ liveLocation: '2dsphere' });
 
 // Password hashing and matching logic (no changes needed here)

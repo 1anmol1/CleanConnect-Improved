@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import useScrollToTop from '../../../hooks/useScrollToTop';
 import { useLocation, useNavigate } from 'react-router-dom';
+import axios from 'axios'; // 1. Import axios
 import { FaCheck, FaArrowRight, FaHome, FaDirections } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import MapComponent from '../../../components/Map/MapComponent';
@@ -16,6 +17,7 @@ const WorkerNavigation = () => {
   const [currentStopIndex, setCurrentStopIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  // This useEffect checks if route data exists
   useEffect(() => {
     if (!route || route.length === 0) {
       toast.error("No route data found. Redirecting...");
@@ -25,6 +27,45 @@ const WorkerNavigation = () => {
     }
   }, [route, navigate]);
 
+
+  // --- THIS IS THE NEW LOGIC FOR LIVE LOCATION TRACKING ---
+  useEffect(() => {
+    // This function sends the worker's current location to the backend
+    const updateLocation = (position) => {
+      const { latitude, longitude } = position.coords;
+      const token = localStorage.getItem('token');
+      
+      axios.put('/api/users/live-location', {
+        lat: latitude,
+        lng: longitude
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      }).catch(error => {
+        // We log this error silently to not bother the worker with notifications
+        console.error("Failed to send live location update:", error);
+      });
+    };
+
+    // This function is called by the interval
+    const sendLocationUpdate = () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(updateLocation, (error) => {
+          console.error("Geolocation error:", error.message);
+        });
+      }
+    };
+
+    // Set up an interval to send a location update every 30 seconds
+    const intervalId = setInterval(sendLocationUpdate, 30000);
+
+    // This is a crucial cleanup function. It runs when the worker navigates away
+    // from this page, stopping the interval to save battery life.
+    return () => clearInterval(intervalId);
+
+  }, []); // The empty dependency array ensures this effect runs only once.
+  // --- END OF LIVE TRACKING LOGIC ---
+
+
   if (loading) {
     return <Loader text="Loading navigation checklist..." />;
   }
@@ -32,27 +73,18 @@ const WorkerNavigation = () => {
   const currentStop = route[currentStopIndex];
   const isLastStop = currentStopIndex === route.length - 1;
 
-  // THE FIX: This function now generates the Google Maps URL for the entire remaining route
   const handleLaunchNavigation = () => {
     if (!workerLocation) {
         toast.error("Current location not available.");
         return;
     }
-
-    // Start navigation from the worker's current location
     const origin = `${workerLocation.lat},${workerLocation.lng}`;
-    
-    // Include all REMAINING stops in the route
     const remainingStops = route.slice(currentStopIndex);
     const waypoints = remainingStops
       .map(stop => `${stop.location.coordinates[1]},${stop.location.coordinates[0]}`)
       .join('|');
-      
-    // The final destination is the last stop on the list
     const destination = `${remainingStops[remainingStops.length - 1].location.coordinates[1]},${remainingStops[remainingStops.length - 1].location.coordinates[0]}`;
-
     const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${waypoints}`;
-    
     window.open(googleMapsUrl, '_blank');
   };
 
@@ -77,7 +109,7 @@ const WorkerNavigation = () => {
           <MapComponent
             center={{ lat: currentStop.location.coordinates[1], lng: currentStop.location.coordinates[0] }}
             markers={[currentStop]}
-            workerLocation={workerLocation}
+            workerLocation={workerLocation} // This shows the worker's starting location
             zoom={16}
           />
         </div>
@@ -91,7 +123,6 @@ const WorkerNavigation = () => {
             </div>
           </div>
           <div className="nav-actions">
-            {/* The new, prominent navigation button */}
             <button className="btn-launch-nav" onClick={handleLaunchNavigation}>
               <FaDirections /> Open Navigation in Google Maps
             </button>

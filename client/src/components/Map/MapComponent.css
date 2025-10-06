@@ -5,7 +5,6 @@
   border-radius: inherit;
   position: relative;
 }
-
 .map-loading, .map-error {
   display: flex;
   justify-content: center;
@@ -14,7 +13,6 @@
   background-color: #f8f9fa;
   border-radius: inherit;
 }
-
 .map-error {
   background-color: #fff3f3;
   color: #dc3545;
@@ -22,53 +20,109 @@
   text-align: center;
 }
 
-/* --- Custom Marker Icon Styles --- */
+/* --- Dustbin Marker Styles (Unchanged) --- */
 .custom-marker-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* This transform correctly centers the icon anchor on its lat/lng */
   transform: translate(-50%, -100%); 
   cursor: pointer;
   transition: transform 0.2s ease;
 }
-
 .custom-marker-container:hover {
-  transform: translate(-50%, -100%) scale(1.1); /* Slightly enlarge on hover */
-  z-index: 1000; /* Bring to front on hover */
+  transform: translate(-50%, -100%) scale(1.1);
+  z-index: 1000;
 }
-
 .marker-icon {
   width: 36px;
   height: 36px;
-  border-radius: 50% 50% 50% 0; /* Creates the teardrop shape */
-  transform: rotate(-45deg); /* Rotates the teardrop to point down */
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
   display: flex;
   align-items: center;
   justify-content: center;
   border: 2px solid white;
   box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
-
 .marker-icon svg {
   color: white;
   font-size: 16px;
-  transform: rotate(45deg); /* Counter-rotates the icon to be upright */
+  transform: rotate(45deg);
 }
-
 .marker-label {
   background-color: rgba(255, 255, 255, 0.9);
   padding: 2px 6px;
   border-radius: 4px;
-  font-family: monospace; /* Good for IDs */
+  font-family: monospace;
   font-size: 11px;
   font-weight: 700;
   color: #333;
   margin-top: 5px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  white-space: nowrap; /* Prevents the ID from wrapping */
+  white-space: nowrap;
 }
 
-/* Add this to the bottom of your MapComponent.css file */
+/* --- Sanitation Vehicle Marker Styles (Unchanged) --- */
+.vehicle-marker-container {
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  z-index: 500;
+}
+.vehicle-icon {
+  width: 38px;
+  height: 38px;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
 
+/* --- "You are here" User Location Marker Styles (UPDATED) --- */
+.user-location-container {
+  /* This transform now correctly anchors the bottom of the pulsing dot to the GPS coordinates */
+  transform: translate(-50%, -100%);
+  z-index: 400;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
+/* NEW: The dialogue box style */
+.user-label {
+  background-color: #007BFF; /* Primary blue color */
+  color: white;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 8px; /* Space between the label and the dot */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  white-space: nowrap;
+}
+
+.user-dot {
+  width: 18px;
+  height: 18px;
+  background-color: #4285F4;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 0 rgba(66, 133, 244, 0.4);
+  animation: pulse-animation 2s infinite;
+}
+
+@keyframes pulse-animation {
+  0% {
+    box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 20px rgba(66, 133, 244, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(66, 133, 244, 0);
+  }
+}

@@ -1,5 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import Bin from '../models/Bin.js';
+import User from '../models/User.js'; // 1. Import the User model
 
 /**
  * @desc    Create a new bin
@@ -8,7 +9,7 @@ import Bin from '../models/Bin.js';
  */
 export const createBin = asyncHandler(async (req, res) => {
   const { binId, coordinates, area, isSmartBin, parentBin } = req.body;
-  const city = req.user.city; // Get city from the logged-in officer
+  const city = req.user.city;
 
   const newBin = await Bin.create({
     binId,
@@ -16,24 +17,46 @@ export const createBin = asyncHandler(async (req, res) => {
     city,
     area,
     isSmartBin,
-    parentBin: parentBin || null, // Ensure parentBin is null if not provided
+    parentBin: parentBin || null,
   });
   res.status(201).json({ success: true, data: newBin });
 });
 
 /**
- * @desc    Get all bins, filtered by city for relevant users
+ * @desc    Get all bins AND live vehicle locations for the user's city
  * @route   GET /api/bins
  * @access  Private
  */
 export const getAllBins = asyncHandler(async (req, res) => {
-  let query = {};
-  // Users only see bins in their own city
-  if (req.user && req.user.city) {
-    query.city = req.user.city;
+  if (!req.user || !req.user.city) {
+    res.status(400);
+    throw new Error('User city not found. Cannot fetch data.');
   }
-  const bins = await Bin.find(query);
-  res.status(200).json({ success: true, count: bins.length, data: bins });
+  
+  const cityQuery = { city: req.user.city };
+
+  // 2. Perform two database queries in parallel for maximum efficiency
+  const [bins, vehicles] = await Promise.all([
+    // First query: Get all bins in the user's city
+    Bin.find(cityQuery),
+
+    // Second query: Get all active workers (vehicles) in the user's city
+    User.find({
+      role: 'Worker',
+      city: req.user.city,
+      liveLocation: { $exists: true }, // Only find workers who have a location
+      updatedAt: { $gte: new Date(Date.now() - 15 * 60 * 1000) } // Active in the last 15 minutes
+    }).select('name liveLocation') // Only select the data we need
+  ]);
+
+  // 3. Send back a combined payload with both bins and vehicles
+  res.status(200).json({ 
+    success: true, 
+    data: {
+      bins: bins,
+      vehicles: vehicles
+    } 
+  });
 });
 
 /**
@@ -45,7 +68,7 @@ export const searchBins = asyncHandler(async (req, res) => {
     const { term } = req.query;
     const bins = await Bin.find({ 
         binId: { $regex: term, $options: 'i' },
-        city: req.user.city // Search only within the user's city
+        city: req.user.city
     }).limit(10);
     res.json({ success: true, data: bins });
 });
@@ -53,7 +76,7 @@ export const searchBins = asyncHandler(async (req, res) => {
 /**
  * @desc    Update a bin's fill level from an IoT device
  * @route   PUT /api/bins/:binId/update
- * @access  Private (Device Only, via API Key)
+ * @access  Private (Device Only)
  */
 export const updateBinFillLevel = asyncHandler(async (req, res) => {
   const { fillLevel } = req.body;
@@ -64,7 +87,6 @@ export const updateBinFillLevel = asyncHandler(async (req, res) => {
   if (bin) {
     bin.fillLevel = fillLevel;
     
-    // Automatically update the status based on the new fill level
     if (fillLevel >= 95) bin.status = 'Overflow';
     else if (fillLevel >= 90) bin.status = 'Full';
     else if (fillLevel >= 70) bin.status = 'Half-Full';
@@ -103,28 +125,14 @@ export const getBinById = asyncHandler(async (req, res) => {
  * @access  Private
  */
 export const getChildBins = asyncHandler(async (req, res) => {
-  // 1. Get the parent bin's MongoDB ID from the URL parameter.
   const parentId = req.params.id;
-
   if (!parentId) {
     res.status(400);
     throw new Error("Parent bin ID is required.");
   }
-
-  // 2. Find all documents in the 'Bin' collection where the 'parentBin' field
-  //    exactly matches the ID of the parent.
   const children = await Bin.find({ parentBin: parentId });
-
-  // 3. This check is crucial.
-  if (children) {
-    res.json({ success: true, data: children });
-  } else {
-    // This case is unlikely but is good for robustness.
-    res.json({ success: true, data: [] }); // Send an empty array if none are found.
-  }
+  res.json({ success: true, data: children });
 });
-
-
 
 /**
  * @desc    Manually update the status of a child bin
@@ -152,26 +160,22 @@ export const updateManualStatus = asyncHandler(async (req, res) => {
  * @access  Private
  */
 export const findNearestEmptyBin = asyncHandler(async (req, res) => {
-  const { lng, lat } = req.query; // Get coordinates from the query string
+  const { lng, lat } = req.query;
 
   if (!lng || !lat) {
     res.status(400);
     throw new Error('Longitude and latitude are required.');
   }
 
-  // Use MongoDB's geospatial query to find the nearest bin
   const nearestBin = await Bin.findOne({
     location: {
       $near: {
-        $geometry: {
-          type: 'Point',
-          coordinates: [parseFloat(lng), parseFloat(lat)],
-        },
-        $maxDistance: 5000, // Search within a 5km radius
+        $geometry: { type: 'Point', coordinates: [parseFloat(lng), parseFloat(lat)] },
+        $maxDistance: 5000,
       },
     },
-    isSmartBin: true, // Only find other smart bins
-    fillLevel: { $lt: 70 }, // Find a bin that is less than 70% full
+    isSmartBin: true,
+    fillLevel: { $lt: 70 },
   });
 
   if (nearestBin) {
@@ -180,7 +184,3 @@ export const findNearestEmptyBin = asyncHandler(async (req, res) => {
     res.status(404).json({ success: false, message: 'No nearby empty bins found.' });
   }
 });
-
-
-
-

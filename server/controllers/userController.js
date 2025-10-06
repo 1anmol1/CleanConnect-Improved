@@ -9,7 +9,7 @@ import Complaint from '../models/Complaint.js';
  */
 export const addWorker = asyncHandler(async (req, res) => {
   const { name, email, workerId, area } = req.body;
-  const city = req.user.city; // Get city from the logged-in officer's token
+  const city = req.user.city;
 
   const userExists = await User.findOne({ $or: [{ email }, { workerId }] });
   if (userExists) {
@@ -17,15 +17,13 @@ export const addWorker = asyncHandler(async (req, res) => {
     throw new Error('A user with this email or Worker ID already exists.');
   }
 
-  // Create the worker with a default password.
-  // In a real app, you would send them an email to set their own password.
   const defaultPassword = 'password123';
 
   const worker = await User.create({
     name,
     email,
     workerId,
-    password: defaultPassword, // The userModel will automatically hash this
+    password: defaultPassword,
     role: 'Worker',
     city,
     area,
@@ -41,12 +39,14 @@ export const addWorker = asyncHandler(async (req, res) => {
 
 
 /**
- * @desc    Get all workers in the officer's city
+ * @desc    Get all workers in the officer's city, including attendance status
  * @route   GET /api/users/workers
  * @access  Private (Officer)
  */
 export const getWorkers = asyncHandler(async (req, res) => {
-  const workers = await User.find({ role: 'Worker', city: req.user.city }).select('-password');
+  const workers = await User.find({ role: 'Worker', city: req.user.city })
+    .select('name area workerId lastCheckIn');
+    
   res.status(200).json({ success: true, data: workers });
 });
 
@@ -91,4 +91,36 @@ export const getLeaderboard = asyncHandler(async (req, res) => {
     .limit(10)
     .select('name cleanCoins');
   res.json({ success: true, data: leaderboard });
+});
+
+
+// --- THIS IS THE NEW FUNCTION FOR LIVE TRACKING ---
+/**
+ * @desc    Update the logged-in worker's live location
+ * @route   PUT /api/users/live-location
+ * @access  Private (Worker)
+ */
+export const updateWorkerLocation = asyncHandler(async (req, res) => {
+    const { lat, lng } = req.body;
+
+    if (lat === undefined || lng === undefined) {
+        res.status(400);
+        throw new Error('Latitude and Longitude are required.');
+    }
+
+    // Find the worker by their ID (from the verified token)
+    const worker = await User.findById(req.user._id);
+
+    if (worker) {
+        // Update the liveLocation field using the GeoJSON Point format
+        worker.liveLocation = {
+            type: 'Point',
+            coordinates: [lng, lat] // IMPORTANT: GeoJSON is [Longitude, Latitude]
+        };
+        await worker.save();
+        res.status(200).json({ success: true, message: 'Location updated successfully.' });
+    } else {
+        res.status(404);
+        throw new Error('Worker not found.');
+    }
 });

@@ -1,56 +1,116 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import useScrollToTop from '../../../hooks/useScrollToTop';
 import { FaUsers, FaTools, FaMapMarkerAlt } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../../hooks/useAuth.js'; // Import useAuth to get user info
+import { useAuth } from '../../../hooks/useAuth.js';
+import { useJsApiLoader } from '@react-google-maps/api'; // For DirectionsService
+import axios from 'axios';
+import { toast } from 'react-toastify';
 import MapComponent from '../../../components/Map/MapComponent';
-import Loader from '../../../components/Loader/Loader'; // Use a loader for consistency
+import Loader from '../../../components/Loader/Loader';
+import useWorkerLocation from '../../../hooks/useWorkerLocation.js'; // To get officer's location
 import dashboardHeroImage from '/src/assets/citizendash.png';
 import './OfficerDashboard.css';
 
-// 1. THE SAME MOCK DATA used in CitizenDashboard and Directions
-const mockBinsData = [
-  { _id: "60d5f1c7b54764421b7156dc", binId: "KTD-001", area: "Kothrud", coordinates: [73.8041, 18.5074], fillLevel: 95 },
-  { _id: "60d5f1c7b54764421b7156dd", binId: "KTD-002", area: "Kothrud", coordinates: [73.8012, 18.5099], fillLevel: 82 },
-  { _id: "60d5f1c7b54764421b7156de", binId: "KTD-003", area: "Kothrud", coordinates: [73.7985, 18.5055], fillLevel: 75 },
-  { _id: "60d5f1c7b54764421b7156df", binId: "KTD-004", area: "Kothrud", coordinates: [73.8088, 18.5123], fillLevel: 45 },
-  { _id: "60d5f1c7b54764421b7156e0", binId: "KTD-005", area: "Kothrud", coordinates: [73.7921, 18.4988], fillLevel: 25 },
-  { _id: "60d5f1c7b54764421b7156e1", binId: "KTD-006", area: "Kothrud", coordinates: [73.8115, 18.5021], fillLevel: 98 },
-  { _id: "60d5f1c7b54764421b7156e2", binId: "KTD-007", area: "Kothrud", coordinates: [73.7889, 18.5145], fillLevel: 60 },
-  { _id: "60d5f1c7b54764421b7156e3", binId: "KTD-008", area: "Kothrud", coordinates: [73.8050, 18.4965], fillLevel: 30 },
-  { _id: "60d5f1c7b54764421b7156e4", binId: "KTD-009", area: "Kothrud", coordinates: [73.8155, 18.5085], fillLevel: 88 },
-  { _id: "60d5f1c7b54764421b7156e5", binId: "KTD-010", area: "Kothrud", coordinates: [73.7953, 18.5112], fillLevel: 55 },
-];
-
-// 2. THE SAME HELPER FUNCTIONS for consistency
-const getBinStatus = (fillLevel) => {
-  if (fillLevel >= 90) return 'Full';
-  if (fillLevel >= 70) return 'Half-Full';
-  return 'Empty';
-};
-
 const OfficerDashboard = () => {
   useScrollToTop();
-  const { user } = useAuth(); // Get the logged-in officer's data
+  const { user } = useAuth();
   const [bins, setBins] = useState([]);
+  const [vehicles, setVehicles] = useState([]); // New state for live vehicles
+  const { location: userLocation } = useWorkerLocation(); // Gets the officer's "You are here" location
   const [loading, setLoading] = useState(true);
   
-  // Set the map center based on the logged-in officer's city, with a fallback
   const mapCenter = user?.city === 'Pune' 
-    ? { lat: 18.5074, lng: 73.8041 } // Kothrud, Pune
-    : { lat: 16.7033, lng: 74.4685 }; // Default fallback
+    ? { lat: 18.5074, lng: 73.8041 }
+    : { lat: 16.7033, lng: 74.4685 };
 
+  // This ref will store our animation intervals to manage them properly
+  const animationIntervalsRef = useRef([]);
+
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+  });
+
+  // This useEffect now fetches live data and starts the vehicle animation
   useEffect(() => {
-    // 3. THE SAME DATA HANDLING LOGIC as the other dashboards
-    // In a real app, this would be an API call. For now, we simulate it.
-    setTimeout(() => {
-        setBins(mockBinsData);
+    const fetchDataAndAnimate = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const { data } = await axios.get('/api/bins', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        // THE FIX: Correctly destructure the new response from the backend
+        const fetchedBins = data.data.bins || [];
+        const initialVehicles = data.data.vehicles || [];
+
+        // Filter for only smart bins for the map display
+        const smartBins = fetchedBins.filter(bin => bin.isSmartBin);
+        setBins(smartBins);
+        setVehicles(initialVehicles); // Set the initial positions of vehicles
+
+        // --- DUMMY MOVING VEHICLE SIMULATION ---
+        if (isLoaded && initialVehicles.length > 0) {
+          // Clear any previous animations before starting new ones
+          animationIntervalsRef.current.forEach(clearInterval);
+          animationIntervalsRef.current = [];
+          
+          const directionsService = new window.google.maps.DirectionsService();
+          // Animate the first two vehicles
+          const vehiclesToAnimate = initialVehicles.slice(0, 2);
+          
+          vehiclesToAnimate.forEach((vehicle, index) => {
+            // Define a unique dummy route for each vehicle
+            const startPoint = { lat: 18.515 + (index * 0.01), lng: 73.79 - (index * 0.005) };
+            const endPoint = { lat: 18.495 - (index * 0.01), lng: 73.82 + (index * 0.005) };
+
+            directionsService.route(
+              { origin: startPoint, destination: endPoint, travelMode: window.google.maps.TravelMode.DRIVING },
+              (result, status) => {
+                if (status === window.google.maps.DirectionsStatus.OK) {
+                  const routePath = result.routes[0].overview_path;
+                  let step = 0;
+
+                  const intervalId = setInterval(() => {
+                    if (step >= routePath.length) step = 0; // Loop the animation
+
+                    const newPosition = { lat: routePath[step].lat(), lng: routePath[step].lng() };
+                    
+                    setVehicles(prev => prev.map(v => 
+                      v._id === vehicle._id 
+                        ? { ...v, liveLocation: { type: 'Point', coordinates: [newPosition.lng, newPosition.lat] } } 
+                        : v
+                    ));
+                    step += 5; // Adjust step for animation speed
+                  }, 2000);
+                  
+                  animationIntervalsRef.current.push(intervalId);
+                }
+              }
+            );
+          });
+        }
+
+      } catch (error) {
+        console.error("Failed to fetch live map data:", error);
+        toast.error("Could not load live map data.");
+      } finally {
         setLoading(false);
-    }, 500);
-  }, []);
+      }
+    };
+
+    if (isLoaded) {
+      fetchDataAndAnimate();
+    }
+    
+    // Crucial cleanup function: stops all animations when the page is left
+    return () => {
+      animationIntervalsRef.current.forEach(clearInterval);
+    };
+  }, [isLoaded]); // This effect runs once the Google Maps script is loaded.
 
   if (loading) {
-    return <Loader text="Loading operational data..." />;
+    return <Loader text="Loading Live Operational Data..." />;
   }
 
   return (
@@ -64,17 +124,13 @@ const OfficerDashboard = () => {
       </header>
       <div className="dashboard-grid">
         <div className="live-map-card card">
-          <h3><FaMapMarkerAlt /> Live Bin Map Overview</h3>
+          <h3><FaMapMarkerAlt /> Live Operations Map</h3>
           <div className="officer-map-container">
-            {/* 4. The MapComponent is now populated with the correct data structure */}
             <MapComponent 
               center={mapCenter} 
-              markers={bins.map(bin => ({
-                binId: bin.binId,
-                location: { coordinates: [bin.coordinates[0], bin.coordinates[1]] },
-                status: getBinStatus(bin.fillLevel),
-                fillLevel: bin.fillLevel
-              }))}
+              markers={bins}         // Pass the list of smart bins
+              vehicles={vehicles}      // Pass the list of live vehicles
+              userLocation={userLocation} // Pass the officer's "You are here" location
             />
           </div>
         </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom'; // 1. Import the useLocation hook
 import useScrollToTop from '../../../hooks/useScrollToTop';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -9,17 +10,35 @@ import './CreateNotification.css';
 
 const CreateNotification = () => {
   useScrollToTop();
+  const location = useLocation(); // 2. Initialize the hook to get navigation state
+  const { user } = useAuth();
+
   const [formData, setFormData] = useState({
     title: '',
     message: '',
-    target: 'All', // The user-friendly option from the dropdown
+    target: 'All',
     area: ''
   });
   const [areas, setAreas] = useState([]);
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
 
-  // Fetches areas for the officer's city when the "Area" target is selected
+  // 3. THE FIX: This new useEffect runs once when the page loads.
+  // It checks if the AI chatbot sent any data in the navigation state.
+  useEffect(() => {
+    // location.state will contain the { title, message } object from the AI
+    if (location.state) {
+      // Update the form's state with the data from the AI
+      setFormData(prevData => ({
+        ...prevData,
+        title: location.state.title || '',
+        message: location.state.message || ''
+      }));
+      // Let the user know the form was pre-filled
+      toast.info("AI has pre-filled the form based on your conversation.");
+    }
+  }, [location.state]); // This dependency ensures the effect runs if the state changes
+
+  // This useEffect for fetching areas remains the same
   useEffect(() => {
     const fetchAreas = async () => {
       if (user?.city && (formData.target === 'AreaCitizens' || formData.target === 'AreaWorkers')) {
@@ -34,35 +53,28 @@ const CreateNotification = () => {
         }
       }
     };
-
     fetchAreas();
   }, [user?.city, formData.target]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-
-    // If the user changes the target away from area-based, reset the selected area
     if (name === 'target' && value !== 'AreaCitizens' && value !== 'AreaWorkers') {
       setFormData(prev => ({ ...prev, area: '' }));
     }
   };
 
-  // --- THE FIX IS IN THIS FUNCTION ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    // 1. Start building the payload that the backend API expects
     let payload = {
       title: formData.title,
       message: formData.message,
-      targetCity: user?.city, // The officer can only notify their own city
-      targetRole: '', // This will be determined by our "translator" logic below
+      targetCity: user?.city,
+      targetRole: '',
     };
 
-    // 2. This is the "translator". It converts the form's 'target' value
-    //    into the 'targetRole' and area that the backend understands.
     switch (formData.target) {
       case 'Citizens':
         payload.targetRole = 'Citizen';
@@ -71,7 +83,7 @@ const CreateNotification = () => {
         payload.targetRole = 'Worker';
         break;
       case 'All':
-        payload.targetRole = 'All'; // Special handling in backend
+        payload.targetRole = 'All';
         break;
       case 'AreaCitizens':
         payload.targetRole = 'Citizen';
@@ -89,12 +101,11 @@ const CreateNotification = () => {
 
     try {
       const token = localStorage.getItem('token');
-      // 3. Send the correctly structured 'payload' object to the backend
       const { data } = await axios.post('/api/notifications', payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success(data.message || 'Notification sent successfully!');
-      setFormData({ title: '', message: '', target: 'All', area: '' }); // Reset form
+      setFormData({ title: '', message: '', target: 'All', area: '' });
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to send notification.');
     } finally {
@@ -114,7 +125,7 @@ const CreateNotification = () => {
           </div>
           <div className="form-group">
             <label htmlFor="message">Message</label>
-            <textarea name="message" value={formData.message} onChange={handleChange} rows="5" placeholder="e.g., The waste collection vehicle will be delayed by 2 hours today..." required></textarea>
+            <textarea name="message" value={formData.message} onChange={handleChange} rows="5" placeholder="e.g., The waste collection vehicle will be delayed..." required></textarea>
           </div>
           <div className="form-group">
             <label htmlFor="target">Send To</label>
