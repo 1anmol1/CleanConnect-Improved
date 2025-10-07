@@ -11,7 +11,6 @@ import { useAuth } from '../../hooks/useAuth';
 import chatbotIcon from '../../assets/ai.png';
 import './Chatbot.css';
 
-// The 'allRoleActions' and 'AIMessageParser' components remain the same.
 const allRoleActions = {
   Citizen: [
     { label: 'Report a New Issue', path: '/citizen/report', icon: <FaExclamationTriangle /> },
@@ -38,6 +37,8 @@ const allRoleActions = {
     { label: 'Generate a worker performance report', query: 'Generate a performance report for all workers this week.', icon: <FaChartBar /> },
   ],
 };
+
+// The AIMessageParser component parses AI responses for navigation buttons.
 const AIMessageParser = ({ text, setIsOpen }) => {
   const navigate = useNavigate();
   const navTokenRegex = /__NAVIGATE_TO__\('([^']*)',\s*'([^']*)'(?:,\s*({.*}))?\)/;
@@ -64,7 +65,6 @@ const AIMessageParser = ({ text, setIsOpen }) => {
   );
 };
 
-// The component is now controlled by props from App.jsx for the wake word feature
 const Chatbot = ({ isOpen, setIsOpen, initialMessage, clearInitialMessage }) => {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
@@ -79,19 +79,20 @@ const Chatbot = ({ isOpen, setIsOpen, initialMessage, clearInitialMessage }) => 
 
   // --- Voice Feature State and Refs ---
   const [isListening, setIsListening] = useState(false);
-  const [isTtsEnabled, setIsTtsEnabled] = useState(false); // TTS is now OFF by default
+  const [isTtsEnabled, setIsTtsEnabled] = useState(true);
   const [isSpeechSupported, setIsSpeechSupported] = useState(false);
+  const [lastInteractionWasVoice, setLastInteractionWasVoice] = useState(false);
   const recognitionRef = useRef(null);
   const speechTimeoutRef = useRef(null);
 
-  // This effect checks for browser support for the Web Speech API on mount.
+  // This effect sets up the speech recognition engine once.
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const speechSynthesis = window.speechSynthesis;
     if (SpeechRecognition && speechSynthesis) {
       setIsSpeechSupported(true);
       const recognition = new SpeechRecognition();
-      recognition.continuous = true;
+      recognition.continuous = false;
       recognition.interimResults = true;
       recognitionRef.current = recognition;
     } else {
@@ -99,53 +100,82 @@ const Chatbot = ({ isOpen, setIsOpen, initialMessage, clearInitialMessage }) => 
     }
   }, []);
 
+  // This effect contains all the event handler logic for speech recognition.
+  useEffect(() => {
+    if (!isSpeechSupported) return;
+
+    const recognition = recognitionRef.current;
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = (event) => {
+      console.error(`Speech recognition error: ${event.error}`);
+      setIsListening(false);
+    };
+
+    recognition.onresult = (event) => {
+      clearTimeout(speechTimeoutRef.current);
+      let finalTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        }
+      }
+      setInputValue(prev => prev + finalTranscript);
+      
+      // Auto-send after a pause
+      speechTimeoutRef.current = setTimeout(() => {
+        const currentTranscript = Array.from(event.results).map(r => r[0].transcript).join('');
+        if (currentTranscript.trim()) {
+          handleSendMessage(currentTranscript, true);
+        }
+        recognition.stop();
+      }, 1500); // 1.5-second pause
+    };
+  }, [isSpeechSupported]);
+
   useEffect(() => {
     if (chatBoxRef.current) chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
   }, [messages]);
 
   useEffect(() => {
-    const handleOutsideClick = (e) => { 
-      // We also check that the click was not on the toggler button itself
-      if (isOpen && chatbotRef.current && !chatbotRef.current.contains(e.target) && !e.target.closest('.chatbot-toggler')) {
-        setIsOpen(false);
-      } 
-    };
+    const handleOutsideClick = (e) => { if (isOpen && chatbotRef.current && !chatbotRef.current.contains(e.target) && !e.target.closest('.chatbot-toggler')) setIsOpen(false); };
     document.addEventListener('mousedown', handleOutsideClick);
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
-      // If opened by the wake word, it will have an initial message
       if (initialMessage) {
         setMessages([{ sender: 'ai', text: initialMessage }]);
-        handleListen(true); // Automatically start listening for the command
-        clearInitialMessage(); // Clear the message so it doesn't trigger again
+        setLastInteractionWasVoice(true);
+        handleListen(true);
+        clearInitialMessage();
       } else if (messages.length === 0) {
-        // Normal manual opening
-        const welcomeText = `Hello, ${user?.name.split(' ')[0] || 'Guest'}! How can I assist?`;
-        setMessages([{ sender: 'ai', text: welcomeText }]);
-        speak(welcomeText);
+        setMessages([{ sender: 'ai', text: `Hello, ${user?.name.split(' ')[0] || 'Guest'}! How can I assist?` }]);
       }
     } else {
-      setMessages([]); 
-      setAreActionsVisible(true); 
-      setActionButtonIndex(0);
+      setMessages([]); setAreActionsVisible(true); setActionButtonIndex(0);
       window.speechSynthesis.cancel();
-      if (isListening && recognitionRef.current) recognitionRef.current.stop();
+      if (recognitionRef.current && isListening) recognitionRef.current.stop();
     }
   }, [isOpen, user, initialMessage]);
 
-  const speak = (text) => {
+  // --- UPDATED: Text-to-Speech now accepts a callback function ---
+  const speak = (text, wasVoiceInteraction, onEndCallback) => {
     const cleanText = text.replace(/__NAVIGATE_TO__\(.*\)/, '').trim();
-    if (isTtsEnabled && cleanText) {
+    if (isTtsEnabled && wasVoiceInteraction && cleanText) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(cleanText);
+      // This is the key: when the speech finishes, the callback is called.
+      utterance.onend = onEndCallback;
       window.speechSynthesis.speak(utterance);
+    } else {
+      // If we're not speaking, call the callback immediately.
+      onEndCallback();
     }
   };
 
-  const handleSendMessage = async (textToSend) => {
+const handleSendMessage = async (textToSend, isFromVoice = false) => {
     if (!textToSend.trim()) return;
     setMessages(prev => [...prev, { sender: 'user', text: textToSend }]);
     setInputValue('');
@@ -156,39 +186,45 @@ const Chatbot = ({ isOpen, setIsOpen, initialMessage, clearInitialMessage }) => 
         headers: { Authorization: `Bearer ${token}` }
       });
       setMessages(prev => [...prev, { sender: 'ai', text: data.reply }]);
-      speak(data.reply);
+
+      // We pass the handleListen function as the callback to the speak function.
+      // It will be executed ONLY after the AI has finished speaking.
+      speak(data.reply, isFromVoice, () => {
+        if (isFromVoice) {
+          handleListen(true); // Re-open the microphone for the next command
+        }
+      });
     } catch (error) {
       const errorMsg = "I'm having trouble connecting to my AI brain right now.";
       setMessages(prev => [...prev, { sender: 'ai', text: errorMsg }]);
-      speak(errorMsg);
+      speak(errorMsg, isFromVoice, () => {}); // Speak the error
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleListen = (isWakeWordFollowUp = false) => {
+  // FIX: A simpler, more robust toggle function for the microphone
+  const handleListen = (isContinuation = false) => {
     if (isListening || !recognitionRef.current) {
       recognitionRef.current?.stop();
       return;
     }
-    const recognition = recognitionRef.current;
-    recognition.onstart = () => { setIsListening(true); if (!isWakeWordFollowUp) toast.info("Listening..."); };
-    recognition.onend = () => { setIsListening(false); };
-    recognition.onerror = (event) => { toast.error(`Speech recognition error: ${event.error}`); setIsListening(false); };
-    recognition.onresult = (event) => {
-      clearTimeout(speechTimeoutRef.current);
-      const transcript = Array.from(event.results).map(r => r[0]).map(r => r.transcript).join('');
-      setInputValue(transcript);
-      speechTimeoutRef.current = setTimeout(() => {
-        recognition.stop();
-        if (transcript.trim()) handleSendMessage(transcript);
-      }, 2000);
-    };
-    recognition.start();
+    setLastInteractionWasVoice(true); // Set the interaction mode to voice
+    if (!isContinuation) toast.info("Listening...");
+    recognitionRef.current.start();
   };
 
-  const handleSubmit = (e) => { e.preventDefault(); handleSendMessage(inputValue); };
-  const handleActionClick = (action) => { handleSendMessage(action.query); setActionButtonIndex(prev => prev + 1); };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setLastInteractionWasVoice(false); // Text submission is not a voice interaction
+    handleSendMessage(inputValue, false);
+  };
+  
+  const handleActionClick = (action) => {
+    setLastInteractionWasVoice(false); // Button clicks are not voice interactions
+    handleSendMessage(action.query, false);
+    setActionButtonIndex(prev => prev + 1);
+  };
   
   const getCurrentActions = () => {
     if (!user) return [];
@@ -200,7 +236,6 @@ const Chatbot = ({ isOpen, setIsOpen, initialMessage, clearInitialMessage }) => 
     const relevantDataActions = [dataActions[dataIndex], dataActions[nextDataIndex]].filter(Boolean);
     return [...navActions, ...relevantDataActions];
   };
-
   const currentActions = getCurrentActions();
 
   return (
@@ -226,22 +261,22 @@ const Chatbot = ({ isOpen, setIsOpen, initialMessage, clearInitialMessage }) => 
           {isLoading && <li className="chat ai"><p className="thinking-indicator"><span></span><span></span><span></span></p></li>}
         </ul>
         
-        {user && (
-          <div className="action-tray">
-            <button className={`tray-toggle-btn ${!areActionsVisible ? 'minimized' : ''}`} onClick={() => setAreActionsVisible(!areActionsVisible)}>
-              <FaChevronDown />
-            </button>
-            {areActionsVisible && (
-              <div className="action-buttons">
-                {currentActions.map((action) => (
-                  <button key={action.label} onClick={() => action.path ? (navigate(action.path), setIsOpen(false)) : handleActionClick(action)}>
-                    {action.icon} {action.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+         {user && (
+                  <div className="action-tray">
+                    <button className={`tray-toggle-btn ${!areActionsVisible ? 'minimized' : ''}`} onClick={() => setAreActionsVisible(!areActionsVisible)}>
+                      <FaChevronDown />
+                    </button>
+                    {areActionsVisible && (
+                      <div className="action-buttons">
+                        {currentActions.map((action) => (
+                          <button key={action.label} onClick={() => action.path ? (navigate(action.path), setIsOpen(false)) : handleActionClick(action)}>
+                            {action.icon} {action.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
         
         <div className="chatbot-input-box">
           <form onSubmit={handleSubmit} style={{ width: '100%', display: 'flex', gap: '10px' }}>
@@ -260,7 +295,6 @@ const Chatbot = ({ isOpen, setIsOpen, initialMessage, clearInitialMessage }) => 
           </form>
         </div>
       </div>
-      {/* THE FLOATING TOGGLER BUTTON IS NOW BACK */}
       <button className="chatbot-toggler" onClick={() => setIsOpen(!isOpen)}>
         {isOpen ? <FaTimes /> : <img src={chatbotIcon} alt="Open Chatbot" />}
       </button>
