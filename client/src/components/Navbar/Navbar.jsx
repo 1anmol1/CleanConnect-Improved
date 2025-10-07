@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-// Import all necessary icons
+// 1. Import all necessary icons, including the new Microphone for the voice button's functionality
 import { 
     FaBars, 
     FaTimes, 
@@ -8,7 +8,8 @@ import {
     FaBell, 
     FaQrcode, 
     FaPlus, 
-    FaUsersCog 
+    FaUsersCog,
+    FaMicrophone
 } from 'react-icons/fa';
 import { BsTrashFill } from 'react-icons/bs';
 import { useAuth } from '../../hooks/useAuth.js';
@@ -16,7 +17,8 @@ import QrScannerModal from '../../components/Modals/QrScannerModal.jsx';
 import logo from '../../assets/logo.png';
 import './Navbar.css';
 
-const Navbar = () => {
+// 2. The Navbar now receives the voice assistant controls as props from App.jsx
+const Navbar = ({ isListening, startListening, stopListening, isSpeechSupported, openChatbot }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isActionsMenuOpen, setIsActionsMenuOpen] = useState(false);
@@ -34,14 +36,11 @@ const Navbar = () => {
     logout();
   };
 
-  // Effect to handle closing both menus on outside clicks
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Close mobile hamburger menu
       if (navRef.current && !navRef.current.contains(event.target)) {
         closeMobileMenu();
       }
-      // Close officer's '+' actions menu
       if (actionsMenuRef.current && !actionsMenuRef.current.contains(event.target) && !event.target.closest('.officer-actions-btn')) {
         setIsActionsMenuOpen(false);
       }
@@ -71,7 +70,6 @@ const Navbar = () => {
           { title: 'Notifications', path: '/worker/notifications' },
         ];
       case 'Officer':
-        // "Manage Workers" is now in the '+' menu, not the main nav links
         return [
           { title: 'Dashboard', path: '/officer/dashboard' },
           { title: 'Manage Complaints', path: '/officer/complaints' },
@@ -111,6 +109,17 @@ const Navbar = () => {
           <div className="header-actions">
             {user ? (
               <>
+                {/* 3. NEW: The Global Voice Assistant Button */}
+                {isSpeechSupported && (
+                  <button
+                    className={`voice-assistant-btn ${isListening ? 'listening' : ''}`}
+                    onClick={isListening ? stopListening : startListening}
+                    title={isListening ? "Stop Voice Assistant" : "Activate Voice Assistant"}
+                  >
+                    <div className="voice-dot"></div>
+                  </button>
+                )}
+
                 {user.role === 'Citizen' && (<button onClick={() => setIsScannerOpen(true)} className="nav-link-icon qr-scan-btn" title="Scan Bin QR Code"><FaQrcode /></button>)}
                 {isBellVisible && notificationLink && (<NavLink to={notificationLink.path} className="nav-link-icon notification-bell"><FaBell /></NavLink>)}
                 
@@ -154,10 +163,10 @@ const Navbar = () => {
           </div>
         </div>
       </nav>
+      
       <QrScannerModal isOpen={isScannerOpen} onClose={() => setIsScannerOpen(false)} />
     </>
   );
 };
 
 export default Navbar;
-

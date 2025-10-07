@@ -98,7 +98,6 @@
   align-items: center;
   gap: 15px;
 }
-/* This rule prevents the Login/Register button from wrapping its text */
 .header-actions .btn {
   white-space: nowrap;
 }
@@ -115,7 +114,7 @@
   color: var(--nav-text-light);
   font-weight: 500;
   transition: color var(--transition-speed) ease;
-  white-space: nowrap; /* This prevents the user's name from wrapping */
+  white-space: nowrap;
 }
 .user-profile-link:hover { color: var(--nav-brand); }
 .user-profile-link svg { font-size: 1.5rem; }
@@ -140,7 +139,6 @@
   cursor: pointer;
   color: var(--nav-brand);
 }
-
 .nav-menu-mobile-container {
   display: none;
   position: absolute;
@@ -153,10 +151,9 @@
   border: 1px solid var(--nav-border);
   overflow: hidden;
   z-index: 999;
-  
   opacity: 0;
   transform: translateY(-10px) scale(0.95);
-  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+  transition: all 0.2s ease;
   visibility: hidden;
   pointer-events: none;
 }
@@ -166,181 +163,78 @@
   visibility: visible;
   pointer-events: auto;
 }
-
-.nav-menu-mobile {
-  list-style: none;
-  padding: 0.5rem;
-}
-.nav-menu-mobile .nav-item {
-  width: 100%;
-}
-.nav-menu-mobile .nav-link {
-  padding: 0.75rem 1rem;
-  width: 100%;
-  text-align: left;
-}
-.nav-item-profile {
-  border-bottom: 1px solid var(--nav-border);
-}
-.nav-item-profile .nav-link {
-  font-weight: 600;
-  color: var(--nav-text);
-}
-.nav-item-login {
-  padding: 0.5rem;
-  margin-top: 0.5rem;
-  border-top: 1px solid var(--nav-border);
-}
-.btn-small {
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
-  width: 100%;
-}
-.nav-item-logout {
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--nav-border);
-}
-.logout-button {
-  background: none;
-  border: none;
-  color: var(--nav-danger-color);
-  font-weight: 500;
-  font-family: 'Inter', sans-serif;
-  font-size: 1rem;
-  cursor: pointer;
-  text-align: left;
-  padding: 0.75rem 1rem;
-  width: 100%;
-  border-radius: 6px;
-  transition: background-color 0.3s ease;
-}
-.logout-button:hover {
-  background-color: #fff5f5;
-}
-
-/* By default, the text is hidden */
-.nav-text {
-  display: none;
-}
+.nav-menu-mobile { list-style: none; padding: 0.5rem; }
+.nav-menu-mobile .nav-item { width: 100%; }
+.nav-menu-mobile .nav-link { padding: 0.75rem 1rem; width: 100%; text-align: left; }
+.nav-item-profile { border-bottom: 1px solid var(--nav-border); }
+.nav-item-profile .nav-link { font-weight: 600; color: var(--nav-text); }
+.nav-item-login { padding: 0.5rem; margin-top: 0.5rem; border-top: 1px solid var(--nav-border); }
+.btn-small { padding: 0.5rem 1rem; font-size: 0.9rem; width: 100%; }
+.nav-item-logout { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--nav-border); }
+.logout-button { background: none; border: none; color: var(--nav-danger-color); font-weight: 500; font-family: 'Inter', sans-serif; font-size: 1rem; cursor: pointer; text-align: left; padding: 0.75rem 1rem; width: 100%; border-radius: 6px; transition: background-color 0.3s ease; }
+.logout-button:hover { background-color: #fff5f5; }
 
 /* --- QR SCANNER BUTTON STYLES (Mobile Only) --- */
-
-.qr-scan-btn {
-  display: none; /* Hidden on desktop by default */
-  font-size: 1.6rem;
-  color: var(--nav-text-light);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  transition: color 0.2s ease;
-}
-
-.qr-scan-btn:hover {
-  color: var(--primary-color);
-}
-
+.qr-scan-btn { display: none; font-size: 1.6rem; color: var(--nav-text-light); background: none; border: none; cursor: pointer; padding: 0; transition: color 0.2s ease; }
+.qr-scan-btn:hover { color: var(--primary-color); }
 
 /* --- Officer Quick Actions Menu --- */
+.officer-actions-container { position: relative; }
+.officer-actions-btn { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background-color: var(--surface-color); border: 1px solid var(--border-color); font-size: 1.2rem; color: var(--text-color); cursor: pointer; transition: all 0.2s ease; }
+.officer-actions-btn:hover { background-color: #eef2f7; border-color: var(--primary-color); }
+.officer-actions-menu { position: absolute; top: 120%; right: 0; width: 220px; background: white; border-radius: 8px; box-shadow: 0 5px 25px rgba(0,0,0,0.15); border: 1px solid var(--border-color); overflow: hidden; z-index: 1001; opacity: 0; transform: translateY(10px); visibility: hidden; pointer-events: none; transition: all 0.2s ease-out; }
+.officer-actions-menu.open { opacity: 1; transform: translateY(0); visibility: visible; pointer-events: auto; }
+.officer-actions-menu a { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text-color); font-weight: 500; font-size: 0.95rem; }
+.officer-actions-menu a:hover { background-color: var(--surface-color); color: var(--primary-color); }
+.officer-actions-menu a:not(:last-child) { border-bottom: 1px solid var(--border-color); }
 
-.officer-actions-container {
-  position: relative; /* This is the anchor for the dropdown menu */
-}
-
-.officer-actions-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* --- NEW: Voice Assistant Button Styles --- */
+.voice-assistant-btn {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: var(--surface-color);
+  background: none;
   border: 1px solid var(--border-color);
-  font-size: 1.2rem;
-  color: var(--text-color);
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   cursor: pointer;
   transition: all 0.2s ease;
 }
-
-.officer-actions-btn:hover {
-  background-color: #eef2f7;
+.voice-assistant-btn:hover {
   border-color: var(--primary-color);
 }
-
-.officer-actions-menu {
-  position: absolute;
-  top: 120%; /* Position it just below the button */
-  right: 0;
-  width: 220px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 5px 25px rgba(0,0,0,0.15);
-  border: 1px solid var(--border-color);
-  overflow: hidden;
-  z-index: 1001;
-  
-  /* Animation for appearing/disappearing */
-  opacity: 0;
-  transform: translateY(10px);
-  visibility: hidden;
-  pointer-events: none;
-  transition: all 0.2s ease-out;
+.voice-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #4f46e5, #0ea5e9, #6366f1);
+  background-size: 400% 400%;
+  animation: gradient-flow 8s ease infinite;
+}
+.voice-assistant-btn.listening .voice-dot {
+  animation: gradient-flow 8s ease infinite, pulse-listening 1.5s infinite;
 }
 
-.officer-actions-menu.open {
-  opacity: 1;
-  transform: translateY(0);
-  visibility: visible;
-  pointer-events: auto;
+@keyframes gradient-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
-.officer-actions-menu a {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  color: var(--text-color);
-  font-weight: 500;
-  font-size: 0.95rem;
+@keyframes pulse-listening {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
 }
 
-.officer-actions-menu a:hover {
-  background-color: var(--surface-color);
-  color: var(--primary-color);
-}
-
-.officer-actions-menu a:not(:last-child) {
-  border-bottom: 1px solid var(--border-color);
-}
-
-/* This media query makes the button appear on screens smaller than 960px */
-@media screen and (max-width: 960px) {
-  .qr-scan-btn {
-    display: flex;
-    align-items: center;
-  }
-}
-
-/* On screens wider than 768px, show the text */
-@media (min-width: 768px) {
-  .nav-text {
-    display: inline;
-    margin-left: 8px;
-  }
-}
 
 /* --- Responsive Styles --- */
 @media screen and (max-width: 960px) {
-  .navbar-container {
-    justify-content: space-between;
-    padding: 0 1.5rem;
-  }
+  .navbar-container { justify-content: space-between; padding: 0 1.5rem; }
   .nav-menu-desktop, .user-info, .header-actions .btn-primary { display: none; }
   .menu-icon, .nav-menu-mobile-container { display: block; }
-  
-  .header-actions {
-    margin-left: 0;
-  }
+  .qr-scan-btn { display: flex; align-items: center; }
+  .header-actions { margin-left: 0; }
 }
-

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth.js';
+import useVoiceAssistant from './hooks/useVoiceAssistant.js'; // 1. Import the new voice assistant hook
 
 // --- LAYOUT & CORE COMPONENTS ---
 import Navbar from './components/Navbar/Navbar.jsx';
@@ -26,7 +27,7 @@ import NewComplaint from './pages/Worker/NewComplaint/NewComplaint.jsx';
 import Resolutions from './pages/Worker/Resolutions/Resolutions.jsx';
 import WorkerProfile from './pages/Worker/Profile/WorkerProfile.jsx';
 import WorkerNotifications from './pages/Worker/Notifications/WorkerNotifications.jsx';
-import WorkerNavigation from './pages/Worker/WorkerNavigation/WorkerNavigation.jsx'; // The new navigation page
+import WorkerNavigation from './pages/Worker/WorkerNavigation/WorkerNavigation.jsx';
 
 // --- OFFICER PORTAL PAGES ---
 import OfficerDashboard from './pages/Officer/Dashboard/OfficerDashboard.jsx';
@@ -38,17 +39,40 @@ import CreateNotification from './pages/Officer/CreateNotification/CreateNotific
 
 function App() {
   const { user } = useAuth();
+  
+  // --- NEW: State to control the chatbot globally ---
+  const [chatbotOpen, setChatbotOpen] = useState(false);
+  const [initialChatbotMessage, setInitialChatbotMessage] = useState('');
+
+  // --- NEW: Logic to handle the voice command from the hook ---
+  const handleVoiceCommand = () => {
+    // This function will be called by the useVoiceAssistant hook when "Hey CleanConnect" is detected.
+    setChatbotOpen(true); // Open the chatbot window
+    
+    // We can add a placeholder message to prompt the user
+    setInitialChatbotMessage("Listening to your command..."); 
+  };
+  
+  // Initialize the voice assistant hook
+  const { isListening, startListening, stopListening, isSpeechSupported } = useVoiceAssistant({
+    onCommand: handleVoiceCommand,
+  });
 
   return (
     <div className="app-wrapper">
-      <Navbar />
+      {/* Pass the voice assistant controls to the Navbar */}
+      <Navbar 
+        isListening={isListening} 
+        startListening={startListening} 
+        stopListening={stopListening}
+        isSpeechSupported={isSpeechSupported}
+        openChatbot={() => setChatbotOpen(true)}
+      />
       <main>
         <Routes>
-          {/* ================= PUBLIC ROUTES ================= */}
+          {/* All your routes remain exactly the same */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
-
-          {/* ================= PROTECTED CITIZEN ROUTES ================= */}
           <Route element={<ProtectedRoute allowedRoles={['Citizen']} />}>
             <Route path="/citizen/dashboard" element={<CitizenDashboard />} />
             <Route path="/citizen/report" element={<ReportIssue />} />
@@ -56,20 +80,15 @@ function App() {
             <Route path="/citizen/rewards" element={<Rewards />} />
             <Route path="/citizen/notifications" element={<Notifications />} />
           </Route>
-
-          {/* ================= PROTECTED WORKER ROUTES ================= */}
           <Route element={<ProtectedRoute allowedRoles={['Worker']} />}>
             <Route path="/worker/dashboard" element={<WorkerDashboard />} />
             <Route path="/worker/directions" element={<Directions />} />
             <Route path="/worker/new-complaint" element={<NewComplaint />} />
             <Route path="/worker/resolutions" element={<Resolutions />} />
-            {/* THE NEW ROUTE FOR LIVE NAVIGATION */}
             <Route path="/worker/navigation" element={<WorkerNavigation />} />
             <Route path="/worker/notifications" element={<WorkerNotifications />} />
             <Route path="/worker/profile" element={<WorkerProfile />} />
           </Route>
-
-          {/* ================= PROTECTED OFFICER ROUTES ================= */}
           <Route element={<ProtectedRoute allowedRoles={['Officer']} />}>
             <Route path="/officer/dashboard" element={<OfficerDashboard />} />
             <Route path="/officer/manage-workers" element={<WorkerManagement />} />
@@ -80,7 +99,15 @@ function App() {
           </Route>
         </Routes>
       </main>
-      {user && <Chatbot />}
+      {/* The Chatbot is now controlled by the App component's state */}
+      {user && (
+        <Chatbot 
+          isOpen={chatbotOpen} 
+          setIsOpen={setChatbotOpen} 
+          initialMessage={initialChatbotMessage}
+          clearInitialMessage={() => setInitialChatbotMessage('')}
+        />
+      )}
       <Footer />
     </div>
   );

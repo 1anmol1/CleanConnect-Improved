@@ -18,7 +18,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.8rem; /* For the close icon */
+  font-size: 1.8rem;
   color: var(--primary-color);
   animation: pulse 2.5s infinite;
 }
@@ -101,7 +101,7 @@
   flex-grow: 1;
   padding: 20px;
   overflow-y: auto;
-  background-color: #f7f9fc; /* A slightly off-white for better contrast */
+  background-color: #f7f9fc;
   list-style: none;
   margin: 0;
 }
@@ -118,198 +118,45 @@
   line-height: 1.5;
   margin: 0;
 }
-/* For links that might appear inside a chat bubble */
 .chat .action-buttons button {
   margin-top: 10px;
 }
-
-/* AI/Bot messages are now on the LEFT */
-.ai {
-  justify-content: flex-start;
-}
-.ai p {
-  background-color: var(--surface-color);
-  color: var(--text-color);
-  border-bottom-left-radius: 4px;
-}
-
-/* User messages are now on the RIGHT */
-.user {
-  justify-content: flex-end;
-  margin-left: auto;
-}
-.user p {
-  background-color: var(--primary-color);
-  color: white;
-  border-bottom-right-radius: 4px;
-}
+.ai { justify-content: flex-start; }
+.ai p { background-color: var(--surface-color); color: var(--text-color); border-bottom-left-radius: 4px; }
+.user { justify-content: flex-end; margin-left: auto; }
+.user p { background-color: var(--primary-color); color: white; border-bottom-right-radius: 4px; }
 
 /* --- Minimizable Action Button Tray --- */
-.action-tray {
-  background-color: #fff;
-  border-top: 1px solid var(--border-color);
-  flex-shrink: 0;
-}
-.tray-toggle-btn {
-  background: #f7f9fc;
-  border: none;
-  width: 100%;
-  padding: 8px;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: var(--text-color-light);
-}
-.tray-toggle-btn:hover {
-  background: #eef2f7;
-}
-.tray-toggle-btn svg {
-  transition: transform 0.3s ease;
-}
-.tray-toggle-btn.minimized svg {
-  transform: rotate(180deg);
-}
-
-.action-buttons {
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.action-buttons button {
-  background: var(--surface-color);
-  border: 1px solid var(--border-color);
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  color: var(--primary-color);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: left;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.action-buttons button:hover {
-  background-color: #eef2f7;
-  border-color: var(--primary-color);
-  transform: translateY(-2px);
-}
+.action-tray { background-color: #fff; border-top: 1px solid var(--border-color); flex-shrink: 0; }
+.tray-toggle-btn { background: #f7f9fc; border: none; width: 100%; padding: 8px; cursor: pointer; display: flex; justify-content: center; align-items: center; color: var(--text-color-light); }
+.tray-toggle-btn:hover { background: #eef2f7; }
+.tray-toggle-btn svg { transition: transform 0.3s ease; }
+.tray-toggle-btn.minimized svg { transform: rotate(180deg); }
+.action-buttons { padding: 15px; display: flex; flex-direction: column; gap: 8px; }
+.action-buttons button { background: var(--surface-color); border: 1px solid var(--border-color); padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; color: var(--primary-color); font-weight: 500; cursor: pointer; transition: all 0.2s ease; text-align: left; display: flex; align-items: center; gap: 10px; }
+.action-buttons button:hover { background-color: #eef2f7; border-color: var(--primary-color); transform: translateY(-2px); }
 
 /* --- Text Input Box --- */
-.chatbot-input-box {
-  display: flex;
-  gap: 10px;
-  padding: 15px;
-  border-top: 1px solid var(--border-color);
-  background-color: #fff;
-  flex-shrink: 0;
-}
-.chatbot-input-box input {
-  flex-grow: 1;
-  border: 1px solid var(--border-color);
-  background-color: var(--background-color);
-  padding: 12px 18px;
-  border-radius: 25px;
-  font-size: 1rem;
-  font-family: 'Poppins', sans-serif;
-}
-.chatbot-input-box input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
-}
-.chatbot-input-box .send-btn {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  font-size: 1.1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  flex-shrink: 0;
-}
-.chatbot-input-box .send-btn:hover {
-  background-color: #0056b3;
-}
-.chatbot-input-box .send-btn:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
+.chatbot-input-box { display: flex; gap: 10px; padding: 15px; border-top: 1px solid var(--border-color); background-color: #fff; flex-shrink: 0; align-items: center; }
+.chatbot-input-box input { flex-grow: 1; border: 1px solid var(--border-color); background-color: var(--background-color); padding: 12px 18px; border-radius: 25px; font-size: 1rem; font-family: 'Poppins', sans-serif; }
+.chatbot-input-box input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15); }
+.chatbot-input-box .send-btn { width: 42px; height: 42px; border-radius: 50%; background: var(--primary-color); color: white; border: none; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background-color 0.3s; flex-shrink: 0; }
+.chatbot-input-box .send-btn:hover { background-color: #0056b3; }
+.chatbot-input-box .send-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+
+/* --- NEW & CONSOLIDATED: Voice Feature Styles --- */
+.chatbot-header .header-buttons { display: flex; align-items: center; gap: 10px; }
+.tts-toggle-btn { background: none; border: none; color: white; opacity: 0.7; font-size: 1.1rem; cursor: pointer; transition: opacity 0.3s, transform 0.2s ease; }
+.tts-toggle-btn:hover { opacity: 1; transform: scale(1.1); }
+
+.mic-btn { width: 42px; height: 42px; border-radius: 50%; background: var(--surface-color); color: var(--text-color-light); border: 1px solid var(--border-color); font-size: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; flex-shrink: 0; }
+.mic-btn:hover { background-color: #eef2f7; color: var(--primary-color); }
+.mic-btn.listening { background-color: #dc3545; color: white; border-color: #dc3545; animation: breathe 1.5s infinite ease-in-out; }
+@keyframes breathe { 0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } }
 
 /* --- Other Utility Styles & Animations --- */
-.thinking-indicator span {
-  height: 8px;
-  width: 8px;
-  background-color: #b2bac2;
-  border-radius: 50%;
-  display: inline-block;
-  animation: bob 1.5s infinite;
-  margin: 0 2px;
-}
-
-.chatbot-input-box {
-  /* Adjust layout to accommodate the new button */
-  align-items: center;
-}
-
-.mic-btn {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: var(--surface-color);
-  color: var(--text-color-light);
-  border: 1px solid var(--border-color);
-  font-size: 1.1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  flex-shrink: 0;
-}
-
-.mic-btn:hover {
-  background-color: #eef2f7;
-  color: var(--primary-color);
-}
-
-/* "Listening" state for the microphone button */
-.mic-btn.listening {
-  background-color: #dc3545; /* Red */
-  color: white;
-  border-color: #dc3545;
-  animation: breathe 1.5s infinite ease-in-out;
-}
-
-@keyframes breathe {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
-  }
-}
-
+.thinking-indicator span { height: 8px; width: 8px; background-color: #b2bac2; border-radius: 50%; display: inline-block; animation: bob 1.5s infinite; margin: 0 2px; }
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(13, 34, 63, 0.4); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(13, 34, 63, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(13, 34, 63, 0); } }
 @keyframes message-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-/* Mobile Responsiveness */
-@media(max-width: 480px) {
-  .chatbot-window {
-    right: 15px;
-    bottom: 85px;
-    width: calc(100% - 30px);
-    height: 70vh;
-  }
-}
+@media(max-width: 480px) { .chatbot-window { right: 15px; bottom: 85px; width: calc(100% - 30px); height: 70vh; } }

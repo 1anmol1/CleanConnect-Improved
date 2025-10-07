@@ -4,14 +4,14 @@ import { toast } from 'react-toastify';
 import { 
     FaTimes, FaPaperPlane, FaChevronDown, FaExclamationTriangle, 
     FaGift, FaRoute, FaCheckCircle, FaChartBar, FaUsers, FaRecycle, FaCoins, 
-    FaTrash, FaShieldAlt, FaWrench, FaUserPlus, FaMicrophone // 1. Import FaMicrophone
+    FaTrash, FaShieldAlt, FaWrench, FaUserPlus, FaMicrophone, FaVolumeUp, FaVolumeMute 
 } from 'react-icons/fa';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import chatbotIcon from '../../assets/ai.png';
 import './Chatbot.css';
 
-// The 'allRoleActions' object remains the same, defining the smart buttons
+// The 'allRoleActions' and 'AIMessageParser' components remain the same.
 const allRoleActions = {
   Citizen: [
     { label: 'Report a New Issue', path: '/citizen/report', icon: <FaExclamationTriangle /> },
@@ -38,8 +38,6 @@ const allRoleActions = {
     { label: 'Generate a worker performance report', query: 'Generate a performance report for all workers this week.', icon: <FaChartBar /> },
   ],
 };
-
-// The AIMessageParser component remains the same
 const AIMessageParser = ({ text, setIsOpen }) => {
   const navigate = useNavigate();
   const navTokenRegex = /__NAVIGATE_TO__\('([^']*)',\s*'([^']*)'(?:,\s*({.*}))?\)/;
@@ -66,8 +64,8 @@ const AIMessageParser = ({ text, setIsOpen }) => {
   );
 };
 
-const Chatbot = () => {
-  const [isOpen, setIsOpen] = useState(false);
+// The component is now controlled by props from App.jsx for the wake word feature
+const Chatbot = ({ isOpen, setIsOpen, initialMessage, clearInitialMessage }) => {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -79,21 +77,25 @@ const Chatbot = () => {
   const chatBoxRef = useRef(null);
   const chatbotRef = useRef(null);
 
-  // --- NEW: State and Refs for Voice Recognition ---
+  // --- Voice Feature State and Refs ---
   const [isListening, setIsListening] = useState(false);
+  const [isTtsEnabled, setIsTtsEnabled] = useState(false); // TTS is now OFF by default
   const [isSpeechSupported, setIsSpeechSupported] = useState(false);
   const recognitionRef = useRef(null);
-  const speechTimeoutRef = useRef(null); // For the auto-send feature
+  const speechTimeoutRef = useRef(null);
 
   // This effect checks for browser support for the Web Speech API on mount.
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
+    const speechSynthesis = window.speechSynthesis;
+    if (SpeechRecognition && speechSynthesis) {
       setIsSpeechSupported(true);
-      recognitionRef.current = new SpeechRecognition();
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognitionRef.current = recognition;
     } else {
-      setIsSpeechSupported(false);
-      console.warn("Speech recognition not supported in this browser.");
+      console.warn("Web Speech API is not supported in this browser.");
     }
   }, []);
 
@@ -102,18 +104,46 @@ const Chatbot = () => {
   }, [messages]);
 
   useEffect(() => {
-    const handleOutsideClick = (e) => { if (isOpen && chatbotRef.current && !chatbotRef.current.contains(e.target)) setIsOpen(false); };
+    const handleOutsideClick = (e) => { 
+      // We also check that the click was not on the toggler button itself
+      if (isOpen && chatbotRef.current && !chatbotRef.current.contains(e.target) && !e.target.closest('.chatbot-toggler')) {
+        setIsOpen(false);
+      } 
+    };
     document.addEventListener('mousedown', handleOutsideClick);
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
-      setMessages([{ sender: 'ai', text: `Hello, ${user?.name.split(' ')[0] || 'Guest'}! How can I assist?` }]);
+      // If opened by the wake word, it will have an initial message
+      if (initialMessage) {
+        setMessages([{ sender: 'ai', text: initialMessage }]);
+        handleListen(true); // Automatically start listening for the command
+        clearInitialMessage(); // Clear the message so it doesn't trigger again
+      } else if (messages.length === 0) {
+        // Normal manual opening
+        const welcomeText = `Hello, ${user?.name.split(' ')[0] || 'Guest'}! How can I assist?`;
+        setMessages([{ sender: 'ai', text: welcomeText }]);
+        speak(welcomeText);
+      }
     } else {
-      setMessages([]); setAreActionsVisible(true); setActionButtonIndex(0);
+      setMessages([]); 
+      setAreActionsVisible(true); 
+      setActionButtonIndex(0);
+      window.speechSynthesis.cancel();
+      if (isListening && recognitionRef.current) recognitionRef.current.stop();
     }
-  }, [isOpen, user]);
+  }, [isOpen, user, initialMessage]);
+
+  const speak = (text) => {
+    const cleanText = text.replace(/__NAVIGATE_TO__\(.*\)/, '').trim();
+    if (isTtsEnabled && cleanText) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      window.speechSynthesis.speak(utterance);
+    }
+  };
 
   const handleSendMessage = async (textToSend) => {
     if (!textToSend.trim()) return;
@@ -126,59 +156,34 @@ const Chatbot = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMessages(prev => [...prev, { sender: 'ai', text: data.reply }]);
+      speak(data.reply);
     } catch (error) {
-      setMessages(prev => [...prev, { sender: 'ai', text: "I'm having trouble connecting to my AI brain right now." }]);
+      const errorMsg = "I'm having trouble connecting to my AI brain right now.";
+      setMessages(prev => [...prev, { sender: 'ai', text: errorMsg }]);
+      speak(errorMsg);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // --- NEW: Voice Recognition Handler ---
-  const handleListen = () => {
-    if (isListening) {
-      recognitionRef.current.stop();
-      setIsListening(false);
+  const handleListen = (isWakeWordFollowUp = false) => {
+    if (isListening || !recognitionRef.current) {
+      recognitionRef.current?.stop();
       return;
     }
-
     const recognition = recognitionRef.current;
-    recognition.continuous = true; // Keep listening even after pauses
-    recognition.interimResults = true; // Get results as the user speaks
-
-    recognition.onstart = () => {
-      setIsListening(true);
-      toast.info("Listening...");
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-    };
-
-    recognition.onerror = (event) => {
-      toast.error(`Speech recognition error: ${event.error}`);
-      setIsListening(false);
-    };
-
+    recognition.onstart = () => { setIsListening(true); if (!isWakeWordFollowUp) toast.info("Listening..."); };
+    recognition.onend = () => { setIsListening(false); };
+    recognition.onerror = (event) => { toast.error(`Speech recognition error: ${event.error}`); setIsListening(false); };
     recognition.onresult = (event) => {
-      // Clear the auto-send timer every time new speech is detected
       clearTimeout(speechTimeoutRef.current);
-      
-      const transcript = Array.from(event.results)
-        .map(result => result[0])
-        .map(result => result.transcript)
-        .join('');
-      
-      setInputValue(transcript); // Update the input box in real-time
-
-      // Set a timer to auto-send if the user pauses for 2 seconds
+      const transcript = Array.from(event.results).map(r => r[0]).map(r => r.transcript).join('');
+      setInputValue(transcript);
       speechTimeoutRef.current = setTimeout(() => {
         recognition.stop();
-        if (transcript.trim()) {
-          handleSendMessage(transcript);
-        }
-      }, 2000); // 2-second pause
+        if (transcript.trim()) handleSendMessage(transcript);
+      }, 2000);
     };
-    
     recognition.start();
   };
 
@@ -201,7 +206,17 @@ const Chatbot = () => {
   return (
     <div ref={chatbotRef}>
       <div className={`chatbot-window ${isOpen ? 'open' : ''}`}>
-        <header className="chatbot-header"><h2>CleanConnect AI</h2><button onClick={() => setIsOpen(false)} className="close-btn">&times;</button></header>
+        <header className="chatbot-header">
+          <h2>CleanConnect AI</h2>
+          <div className="header-buttons">
+            {isSpeechSupported && (
+              <button onClick={() => setIsTtsEnabled(!isTtsEnabled)} className="tts-toggle-btn" title={isTtsEnabled ? "Mute AI Voice" : "Unmute AI Voice"}>
+                {isTtsEnabled ? <FaVolumeUp /> : <FaVolumeMute />}
+              </button>
+            )}
+            <button onClick={() => setIsOpen(false)} className="close-btn">&times;</button>
+          </div>
+        </header>
         <ul className="chatbox" ref={chatBoxRef}>
           {messages.map((msg, index) => (
             <li key={index} className={`chat ${msg.sender}`}>
@@ -230,22 +245,22 @@ const Chatbot = () => {
         
         <div className="chatbot-input-box">
           <form onSubmit={handleSubmit} style={{ width: '100%', display: 'flex', gap: '10px' }}>
-            {/* --- THE NEW MICROPHONE BUTTON --- */}
             {isSpeechSupported && user && (
               <button 
                 type="button" 
-                onClick={handleListen}
+                onClick={() => handleListen(false)}
                 className={`mic-btn ${isListening ? 'listening' : ''}`}
                 title="Speak to Chatbot"
               >
                 <FaMicrophone />
               </button>
             )}
-            <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder="Type a message..." disabled={isLoading || !user} />
+            <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder="Type or speak..." disabled={isLoading || !user} />
             <button type="submit" disabled={isLoading || !user} className="send-btn"><FaPaperPlane /></button>
           </form>
         </div>
       </div>
+      {/* THE FLOATING TOGGLER BUTTON IS NOW BACK */}
       <button className="chatbot-toggler" onClick={() => setIsOpen(!isOpen)}>
         {isOpen ? <FaTimes /> : <img src={chatbotIcon} alt="Open Chatbot" />}
       </button>
