@@ -8,6 +8,7 @@ import { FaMapMarkerAlt, FaExclamationTriangle } from 'react-icons/fa';
 import Loader from '../../../components/Loader/Loader.jsx';
 import MapComponent from '../../../components/Map/MapComponent.jsx';
 import useWorkerLocation from '../../../hooks/useWorkerLocation.js'; // Re-used to get citizen's location
+import dashboardHeroImage from '/src/assets/citizendash.png';
 import './CitizenDashboard.css';
 
 const CitizenDashboard = () => {
@@ -115,7 +116,8 @@ const CitizenDashboard = () => {
 
   return (
     <div className="citizen-dashboard container fade-in">
-      <header className="page-header">
+      <header className="page-header"
+              style={{ backgroundImage: `url(${dashboardHeroImage})` }}>
         <h1>Welcome, {user?.name}!</h1>
         <p>Here's a live overview of smart bins and vehicles in your area.</p>
       </header>

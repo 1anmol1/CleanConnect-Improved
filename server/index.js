@@ -32,7 +32,7 @@ app.use(express.json());
 
 // Serve static files (like uploaded images) from the 'public' folder
 const __dirname = path.resolve();
-app.use(express.static(path.join(__dirname, 'server/public')));
+app.use(express.static(path.join(__dirname, 'server/public/uploads')));
 
 // Mount all API routers on their respective paths
 app.use('/api/bins', binRoutes);

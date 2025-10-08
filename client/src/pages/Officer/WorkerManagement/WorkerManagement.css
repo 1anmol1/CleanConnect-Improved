@@ -107,3 +107,20 @@
   border-color: var(--primary-color);
   transform: translateY(-2px);
 }
+
+@media (max-width: 768px) {
+  .worker-management-page .page-header {
+    /* Change the layout from a row to a column */
+    flex-direction: column;
+    /* Align items to the start (left) of the container */
+    align-items: flex-start;
+    /* Add some space between the title and the button */
+    gap: 1rem;
+  }
+
+  .worker-management-page .page-header .btn {
+    /* Make the button take up the full width for a better mobile feel */
+    width: 100%;
+    text-align: center;
+  }
+}

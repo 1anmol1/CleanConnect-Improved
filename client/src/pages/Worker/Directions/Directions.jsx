@@ -9,6 +9,7 @@ import MapComponent from '../../../components/Map/MapComponent.jsx';
 import Loader from '../../../components/Loader/Loader.jsx';
 import RouteOptimizationLoader from '../../../components/Loader/RouteOptimizationLoader.jsx'; // 1. Import the new animation loader
 import useWorkerLocation from '../../../hooks/useWorkerLocation.js';
+import dashboardHeroImage from '/src/assets/route.png';
 import './Directions.css';
 
 const Directions = () => {
@@ -145,7 +146,8 @@ const Directions = () => {
   // The final view with the map and list.
   return (
     <div className="directions-page container fade-in">
-      <header className="page-header">
+      <header className="page-header"
+              style={{ backgroundImage: `url(${dashboardHeroImage})` }}>
         <h1>Today's Optimized Route</h1>
         {routeSummary && <p className="route-summary">{routeSummary}</p>}
       </header>

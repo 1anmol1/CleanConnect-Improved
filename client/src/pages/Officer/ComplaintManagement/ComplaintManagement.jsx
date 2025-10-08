@@ -9,6 +9,7 @@ import ReassignModal from '../../../components/Modals/ReassignModal.jsx';
 import ViewFeedbackModal from '../../../components/Modals/ViewFeedbackModal.jsx';
 import ImageViewerModal from '../../../components/Modals/ImageViewerModal.jsx'; // 2. Import the new Image Viewer Modal
 import Loader from '../../../components/Loader/Loader.jsx';
+import dashboardHeroImage from '/src/assets/manage.png';
 import './ComplaintManagement.css';
 
 const ComplaintManagement = () => {
@@ -146,7 +147,9 @@ const ComplaintManagement = () => {
     return (
         <>
             <div className="complaint-management-page container fade-in">
-                <header className="page-header">
+                <header className="page-header"
+                            style={{ backgroundImage: `url(${dashboardHeroImage})` }}>
+                    
                     <h1>Complaint Management</h1>
                     <p>Review and assign incoming sanitation reports for {user?.city}.</p>
                 </header>
