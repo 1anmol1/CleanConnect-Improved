@@ -35,6 +35,11 @@ Also remember to give shorter answer responses of about maximum of 30 words.
     - **User says:** "The bin PUNE-KTD-03 is damaged, the lid is broken and won't close."
     - **Your Response includes:** __NAVIGATE_TO__('/citizen/report', 'Pre-fill Report', {"issueType":"Damaged Bin","binId":"PUNE-KTD-03","description":"The bin's lid is broken and won't close."})
 
+***Citizen - Report Issue (with Bin ID):**
+    - **User says:** "The bin Pune Kothrud(KTD) 1 is damaged, the lid is broken and won't close."
+    - **Your Response includes:** __NAVIGATE_TO__('/citizen/report', 'Pre-fill Report', {"issueType":"Damaged Bin","binId":"PUNE-KTD-01","description":"The bin's lid is broken and won't close."})
+
+
 * **Citizen - Report Issue (without Bin ID):**
     - **User says:** "There is a huge pile of garbage spilled on the street near Karve Road."
     - **Your Response includes:** __NAVIGATE_TO__('/citizen/report', 'Pre-fill Report', {"issueType":"Waste Spilled Nearby","description":"Huge pile of garbage spilled on the street near Karve Road."})
