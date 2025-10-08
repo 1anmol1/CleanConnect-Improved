@@ -2,16 +2,20 @@
   text-align: center;
   margin-bottom: 40px;
 }
+
+/* This is the key for mobile compatibility. It allows the table to scroll horizontally. */
 .complaint-table-container {
-  padding: 20px;
   overflow-x: auto;
   background: white;
 }
+
 .complaint-table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
+  /* Use 'auto' to let columns breathe, but set min-widths for structure */
+  table-layout: auto;
 }
+
 .complaint-table th {
   padding: 16px;
   font-size: 0.85rem;
@@ -20,28 +24,21 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-bottom: 2px solid var(--border-color);
-  /* --- EDITED: Center align header text --- */
-  text-align: center;
+  text-align: left; /* Align headers to the left for better readability */
+  white-space: nowrap;
 }
+
 .complaint-table td {
   padding: 16px;
   vertical-align: middle;
   border-bottom: 1px solid var(--border-color);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  /* --- EDITED: Center align all cell content --- */
-  text-align: center;
+  text-align: left;
 }
+
 .complaint-table tbody tr:hover {
     background-color: var(--surface-color);
 }
-
-.complaint-table th:nth-child(1) { width: 5%; }
-.complaint-table th:nth-child(2) { width: 30%; }
-.complaint-table th:nth-child(3) { width: 25%; }
-.complaint-table th:nth-child(4) { width: 20%; }
-.complaint-table th:nth-child(5) { width: 20%; }
 
 .bin-id-small {
     font-family: monospace;
@@ -51,10 +48,10 @@
 
 .issue-cell {
     position: relative;
-    /* EDITED: Text align left for this specific cell for better readability with the badge */
-    text-align: left;
     padding-left: 40px !important; 
+    min-width: 200px; /* Give a minimum width */
 }
+
 .report-count-badge {
     position: absolute;
     top: 50%;
@@ -73,22 +70,67 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
+/* --- NEW: Styles for the "Proof" column and button --- */
+.proof-cell {
+  text-align: center;
+}
 
+.btn-view-proof {
+  background: none;
+  border: 1px solid var(--border-color);
+  padding: 6px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-color);
+  transition: all 0.2s ease;
+}
+
+.btn-view-proof:hover {
+  background-color: var(--surface-color);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+/* --- Feedback Cell Styles --- */
+.feedback-cell {
+  text-align: center;
+}
+
+.feedback-counts {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
 
 .feedback-cell p { 
     margin: 0;
 }
+
 .feedback-positive, .feedback-negative {
     display: flex;
     align-items: center;
     gap: 5px;
     font-weight: 600;
-    /* --- EDITED: Center align flex content --- */
-    justify-content: center;
 }
 .feedback-positive { color: #155724; }
 .feedback-negative { color: #721c24; }
 
+.read-feedback-link {
+    font-size: 0.8rem;
+    color: var(--primary-color);
+    cursor: pointer;
+    text-decoration: underline;
+    display: block;
+    margin-top: 5px;
+}
+
+/* --- Other Existing Styles --- */
 .status-badge {
   padding: 5px 12px;
   border-radius: 20px;
@@ -106,7 +148,13 @@
 
 .worker-assign-select {
     width: 100%;
+    min-width: 180px;
 }
+
+.status-action-cell {
+    text-align: center;
+}
+
 .btn-small {
     padding: 8px 12px;
     font-size: 0.9rem;
@@ -144,4 +192,3 @@
 .btn-status-assigned { background-color: #d1ecf1; color: #0c5460; border-color: #bee5eb; }
 .btn-status-closed { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
 .btn-status-verified { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
-

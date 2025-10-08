@@ -1,0 +1,36 @@
+.image-viewer-modal-content .modal-body {
+  padding-top: 1rem;
+}
+
+.image-viewer-modal-content .image-container {
+  width: 100%;
+  max-height: 60vh;
+  margin-top: 1rem;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  background-color: var(--surface-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-viewer-modal-content img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Ensures the whole image is visible without distortion */
+}
+
+.image-viewer-modal-content .no-image-text {
+  padding: 2rem;
+  color: var(--text-color-light);
+  font-style: italic;
+}
+
+.image-viewer-modal-content .modal-footer {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end; /* Aligns button to the right */
+}

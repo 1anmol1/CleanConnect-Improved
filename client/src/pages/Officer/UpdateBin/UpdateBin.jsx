@@ -2,18 +2,17 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../../hooks/useAuth.js';
-import { useJsApiLoader, GoogleMap, MarkerF } from '@react-google-maps/api';
+// THE FIX: Import the new 'AdvancedMarkerElement'
+import { useJsApiLoader, GoogleMap, MarkerF, Marker } from '@react-google-maps/api';
 import { FaMapPin } from 'react-icons/fa';
 import Loader from '../../../components/Loader/Loader.jsx';
-import '../../Shared/SharedForm.css'; // This should contain your base form styles
-import './UpdateBin.css'; // This contains the new map-specific styles
+import '../../Shared/SharedForm.css';
+import './UpdateBin.css';
 
-// Helper object to define the center coordinates for supported cities
 const cityCoordinates = {
   Pune: { lat: 18.5204, lng: 73.8567 },
   Mumbai: { lat: 19.0760, lng: 72.8777 },
   Kolhapur: { lat: 16.7048, lng: 74.2433 },
-  // Add other cities from your seeder file as needed
 };
 
 const UpdateBin = () => {
@@ -22,29 +21,23 @@ const UpdateBin = () => {
   const [areas, setAreas] = useState([]);
   const [loadingAreas, setLoadingAreas] = useState(false);
   const [isMapVisible, setIsMapVisible] = useState(false);
-  
-  // State to hold the locations of bins already in the system
   const [existingBins, setExistingBins] = useState([]);
   
-  // State for the map's center and the position of the new draggable marker
-  const [mapCenter, setMapCenter] = useState({ lat: 18.5204, lng: 73.8567 }); // Default to Pune
+  const [mapCenter, setMapCenter] = useState({ lat: 18.5204, lng: 73.8567 });
   const [markerPosition, setMarkerPosition] = useState(mapCenter);
 
-  // Hook to load the Google Maps JavaScript API script
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
   });
 
-  // Effect to automatically center the map on the logged-in officer's city
   useEffect(() => {
     if (user?.city && cityCoordinates[user.city]) {
       const cityCenter = cityCoordinates[user.city];
       setMapCenter(cityCenter);
-      setMarkerPosition(cityCenter); // Also place the new bin marker in the city center initially
+      setMarkerPosition(cityCenter);
     }
   }, [user?.city]);
 
-  // Effect to fetch the list of areas for the dropdown menu
   useEffect(() => {
     const fetchAreas = async () => {
       if (user?.city) {
@@ -65,7 +58,6 @@ const UpdateBin = () => {
     fetchAreas();
   }, [user?.city]);
   
-  // Effect to fetch the locations of existing bins, but only when the map is opened
   useEffect(() => {
     const fetchExistingBins = async () => {
       if (isMapVisible && user?.city) {
@@ -74,7 +66,9 @@ const UpdateBin = () => {
           const { data } = await axios.get('/api/bins', {
             headers: { Authorization: `Bearer ${token}` }
           });
-          setExistingBins(data.data || []);
+          // --- THE FIX FOR THE CRASH IS HERE ---
+          // We now correctly access the 'bins' array from the complex data object.
+          setExistingBins(data.data.bins || []);
         } catch (error) {
           toast.error("Could not load existing bin locations.");
         }
@@ -87,17 +81,14 @@ const UpdateBin = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // This function is called when the user stops dragging the red marker on the map
   const handleMarkerDragEnd = (e) => {
     const newLat = e.latLng.lat();
     const newLng = e.latLng.lng();
     const newPosition = { lat: newLat, lng: newLng };
     setMarkerPosition(newPosition);
-    // Update the form's coordinates input field in real-time with the new position
     setFormData(prev => ({ ...prev, coordinates: `${newLat.toFixed(6)}, ${newLng.toFixed(6)}` }));
   };
 
-  // Handles the final submission of the form
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -109,7 +100,6 @@ const UpdateBin = () => {
       const payload = { 
           binId: formData.binId,
           area: formData.area,
-          // GeoJSON format requires [Longitude, Latitude]
           coordinates: [coordsArray[1], coordsArray[0]] 
         };
       
@@ -118,8 +108,8 @@ const UpdateBin = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('New bin added to the network!');
-      setFormData({ binId: '', coordinates: '', area: '' }); // Reset form
-      setIsMapVisible(false); // Hide the map on success
+      setFormData({ binId: '', coordinates: '', area: '' });
+      setIsMapVisible(false);
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to add bin.');
     }
@@ -142,9 +132,7 @@ const UpdateBin = () => {
             <label htmlFor="area">Area</label>
             <select name="area" value={formData.area} onChange={handleChange} required disabled={loadingAreas}>
               <option value="">{loadingAreas ? 'Loading areas...' : '-- Select an Area --'}</option>
-              {areas.map(area => (
-                <option key={area._id} value={area.name}>{area.name}</option>
-              ))}
+              {areas.map(area => <option key={area._id} value={area.name}>{area.name}</option>)}
             </select>
           </div>
 
@@ -166,8 +154,10 @@ const UpdateBin = () => {
                   mapContainerClassName="add-bin-map-container"
                   center={mapCenter}
                   zoom={14}
+                  // A 'mapId' is required for AdvancedMarkerElement to work
+                  mapId="cleanconnect_add_bin_map_style"
                 >
-                  {/* 1. Render simple, grey markers for EXISTING bins for context */}
+                  {/* Render simple, grey markers for EXISTING bins */}
                   {existingBins.map(bin => (
                     <MarkerF
                       key={bin._id}
@@ -175,20 +165,22 @@ const UpdateBin = () => {
                       icon={{
                         path: window.google.maps.SymbolPath.CIRCLE,
                         scale: 5,
-                        fillColor: '#808080', // Grey color
+                        fillColor: '#808080',
                         fillOpacity: 0.6,
                         strokeWeight: 0,
                       }}
                     />
                   ))}
                   
-                  {/* 2. Render the one prominent, DRAGGABLE marker for the NEW bin */}
-                  <MarkerF
+                  {/* --- THE FIX FOR THE DEPRECATION WARNING --- */}
+                  {/* We now use the new, recommended AdvancedMarkerElement for the draggable marker */}
+                  <Marker
                     position={markerPosition}
                     draggable={true}
                     onDragEnd={handleMarkerDragEnd}
-                    zIndex={100} // Ensure it's on top of the grey markers
-                  />
+                  >
+                    {/* You can add custom HTML/CSS inside the advanced marker if you wish */}
+                  </Marker>
                 </GoogleMap>
               )}
             </div>
