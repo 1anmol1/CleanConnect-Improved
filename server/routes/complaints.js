@@ -17,11 +17,17 @@ import {
   getMyComplaints,
   bulkDeleteComplaints,
   getWorkerResolutions,
-  addFeedbackToComplaint
+  addFeedbackToComplaint,
+  getWorkerProgress,
+  getOfficerProgress // <-- Import the new function
 } from '../controllers/complaintController.js';
 
 
 // --- Route Definitions ---
+
+// NEW PUBLIC ROUTE for officer progress report
+// GET /api/complaints/officer-progress
+router.route('/officer-progress').get(getOfficerProgress);
 
 // Base route: /api/complaints
 // GET for Officers to see all complaints.
@@ -41,6 +47,10 @@ router.route('/my-resolutions').get(protect, authorize('Worker'), getWorkerResol
 // Route for an officer to delete multiple complaints at once
 // POST /api/complaints/bulk-delete
 router.route('/bulk-delete').post(protect, authorize('Officer'), bulkDeleteComplaints);
+
+// Route for worker progress report
+// GET /api/complaints/progress
+router.route('/progress').get(protect, authorize('Officer'), getWorkerProgress);
 
 // Route for a citizen to add feedback to a specific complaint
 // PUT /api/complaints/:id/feedback
@@ -64,4 +74,3 @@ router.route('/:id/close').put(protect, authorize('Officer'), closeComplaint);
 
 
 export default router;
-

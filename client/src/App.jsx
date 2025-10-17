@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth.js';
-import useVoiceAssistant from './hooks/useVoiceAssistant.js'; // 1. Import the new voice assistant hook
+import useVoiceAssistant from './hooks/useVoiceAssistant.js';
 
 // --- LAYOUT & CORE COMPONENTS ---
 import Navbar from './components/Navbar/Navbar.jsx';
@@ -12,6 +12,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
 // --- PUBLIC PAGES ---
 import Home from './pages/Home/Home.jsx';
 import Login from './pages/Login/Login.jsx';
+import OfficerProgress from './pages/Public/OfficerProgress/OfficerProgress.jsx'; // <-- Import the new public page
 
 // --- CITIZEN PORTAL PAGES ---
 import CitizenDashboard from './pages/Citizen/Dashboard/CitizenDashboard.jsx';
@@ -36,31 +37,25 @@ import UpdateBin from './pages/Officer/UpdateBin/UpdateBin.jsx';
 import OfficerProfile from './pages/Officer/Profile/OfficerProfile.jsx';
 import ComplaintManagement from './pages/Officer/ComplaintManagement/ComplaintManagement.jsx';
 import CreateNotification from './pages/Officer/CreateNotification/CreateNotification.jsx';
+import WorkerProgress from './pages/Officer/WorkerProgress/WorkerProgress.jsx';
 
 function App() {
   const { user } = useAuth();
   
-  // --- NEW: State to control the chatbot globally from the App component ---
   const [chatbotOpen, setChatbotOpen] = useState(false);
   const [initialChatbotMessage, setInitialChatbotMessage] = useState('');
 
-  // --- NEW: Logic to handle the voice command when the wake word is detected ---
   const handleVoiceCommand = () => {
-    // This function is called by the useVoiceAssistant hook.
-    setChatbotOpen(true); // Open the chatbot window
-    
-    // This message will be passed to the chatbot to trigger its local listener.
+    setChatbotOpen(true);
     setInitialChatbotMessage("Listening for your command..."); 
   };
   
-  // Initialize the voice assistant hook and pass it the callback function.
   const { isListening, startListening, stopListening, isSpeechSupported } = useVoiceAssistant({
     onCommand: handleVoiceCommand,
   });
 
   return (
     <div className="app-wrapper">
-      {/* Pass the voice assistant controls and the chatbot opener to the Navbar */}
       <Navbar 
         isListening={isListening} 
         startListening={startListening} 
@@ -70,10 +65,12 @@ function App() {
       />
       <main>
         <Routes>
-          {/* All your existing routes remain exactly the same */}
+          {/* PUBLIC ROUTES */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/officer-progress" element={<OfficerProgress />} /> {/* <-- ADD THIS NEW PUBLIC ROUTE */}
 
+          {/* PROTECTED ROUTES */}
           <Route element={<ProtectedRoute allowedRoles={['Citizen']} />}>
             <Route path="/citizen/dashboard" element={<CitizenDashboard />} />
             <Route path="/citizen/report" element={<ReportIssue />} />
@@ -99,11 +96,11 @@ function App() {
             <Route path="/officer/create-notification" element={<CreateNotification />} />
             <Route path="/officer/update-bin" element={<UpdateBin />} />
             <Route path="/officer/profile" element={<OfficerProfile />} />
+            <Route path="/officer/worker-progress" element={<WorkerProgress />} />
           </Route>
         </Routes>
       </main>
       
-      {/* The Chatbot's visibility and initial state are now controlled by the App component */}
       {user && (
         <Chatbot 
           isOpen={chatbotOpen} 

@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import useScrollToTop from '../../../hooks/useScrollToTop';
-import { FaUsers, FaTools, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaUsers, FaTools, FaMapMarkerAlt, FaChartLine } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth.js';
-import { useJsApiLoader } from '@react-google-maps/api'; // For DirectionsService
+import { useJsApiLoader } from '@react-google-maps/api';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import MapComponent from '../../../components/Map/MapComponent';
 import Loader from '../../../components/Loader/Loader';
-import useWorkerLocation from '../../../hooks/useWorkerLocation.js'; // To get officer's location
+import useWorkerLocation from '../../../hooks/useWorkerLocation.js';
 import dashboardHeroImage from '/src/assets/citizendash.png';
 import './OfficerDashboard.css';
 
@@ -16,22 +16,20 @@ const OfficerDashboard = () => {
   useScrollToTop();
   const { user } = useAuth();
   const [bins, setBins] = useState([]);
-  const [vehicles, setVehicles] = useState([]); // New state for live vehicles
-  const { location: userLocation } = useWorkerLocation(); // Gets the officer's "You are here" location
+  const [vehicles, setVehicles] = useState([]);
+  const { location: userLocation } = useWorkerLocation();
   const [loading, setLoading] = useState(true);
   
   const mapCenter = user?.city === 'Pune' 
     ? { lat: 18.5074, lng: 73.8041 }
     : { lat: 16.7033, lng: 74.4685 };
 
-  // This ref will store our animation intervals to manage them properly
   const animationIntervalsRef = useRef([]);
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
   });
 
-  // This useEffect now fetches live data and starts the vehicle animation
   useEffect(() => {
     const fetchDataAndAnimate = async () => {
       try {
@@ -40,27 +38,21 @@ const OfficerDashboard = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        // THE FIX: Correctly destructure the new response from the backend
         const fetchedBins = data.data.bins || [];
         const initialVehicles = data.data.vehicles || [];
 
-        // Filter for only smart bins for the map display
         const smartBins = fetchedBins.filter(bin => bin.isSmartBin);
         setBins(smartBins);
-        setVehicles(initialVehicles); // Set the initial positions of vehicles
+        setVehicles(initialVehicles);
 
-        // --- DUMMY MOVING VEHICLE SIMULATION ---
         if (isLoaded && initialVehicles.length > 0) {
-          // Clear any previous animations before starting new ones
           animationIntervalsRef.current.forEach(clearInterval);
           animationIntervalsRef.current = [];
           
           const directionsService = new window.google.maps.DirectionsService();
-          // Animate the first two vehicles
           const vehiclesToAnimate = initialVehicles.slice(0, 2);
           
           vehiclesToAnimate.forEach((vehicle, index) => {
-            // Define a unique dummy route for each vehicle
             const startPoint = { lat: 18.515 + (index * 0.01), lng: 73.79 - (index * 0.005) };
             const endPoint = { lat: 18.495 - (index * 0.01), lng: 73.82 + (index * 0.005) };
 
@@ -72,7 +64,7 @@ const OfficerDashboard = () => {
                   let step = 0;
 
                   const intervalId = setInterval(() => {
-                    if (step >= routePath.length) step = 0; // Loop the animation
+                    if (step >= routePath.length) step = 0;
 
                     const newPosition = { lat: routePath[step].lat(), lng: routePath[step].lng() };
                     
@@ -81,7 +73,7 @@ const OfficerDashboard = () => {
                         ? { ...v, liveLocation: { type: 'Point', coordinates: [newPosition.lng, newPosition.lat] } } 
                         : v
                     ));
-                    step += 5; // Adjust step for animation speed
+                    step += 5;
                   }, 2000);
                   
                   animationIntervalsRef.current.push(intervalId);
@@ -103,11 +95,10 @@ const OfficerDashboard = () => {
       fetchDataAndAnimate();
     }
     
-    // Crucial cleanup function: stops all animations when the page is left
     return () => {
       animationIntervalsRef.current.forEach(clearInterval);
     };
-  }, [isLoaded]); // This effect runs once the Google Maps script is loaded.
+  }, [isLoaded]);
 
   if (loading) {
     return <Loader text="Loading Live Operational Data..." />;
@@ -128,9 +119,9 @@ const OfficerDashboard = () => {
           <div className="officer-map-container">
             <MapComponent 
               center={mapCenter} 
-              markers={bins}         // Pass the list of smart bins
-              vehicles={vehicles}      // Pass the list of live vehicles
-              userLocation={userLocation} // Pass the officer's "You are here" location
+              markers={bins}
+              vehicles={vehicles}
+              userLocation={userLocation}
             />
           </div>
         </div>
@@ -144,6 +135,12 @@ const OfficerDashboard = () => {
             <FaTools className="card-icon" />
             <h3>Manage Bins</h3>
             <p>Add new smart bins to the city network.</p>
+          </Link>
+          {/* ADD THIS NEW BUTTON/LINK */}
+          <Link to="/officer/worker-progress" className="dashboard-card card">
+            <FaChartLine className="card-icon" />
+            <h3>Worker Progress</h3>
+            <p>Track complaint resolution times and efficiency.</p>
           </Link>
         </div>
       </div>

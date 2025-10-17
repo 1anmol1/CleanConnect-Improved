@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import useScrollToTop from '../../hooks/useScrollToTop';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth.js';
 import { toast } from 'react-toastify';
 import './Login.css';
@@ -19,7 +19,7 @@ const Login = () => {
   
   const navigate = useNavigate();
   const { login } = useAuth();
-  const formRef = React.useRef();
+  const formRef = useRef();
 
   useEffect(() => {
     const fetchCities = async () => {
@@ -116,7 +116,6 @@ const Login = () => {
           {(activeRole === 'Worker' || activeRole === 'Officer') && isLoginView && (<div className="toggle-text">For login assistance, please contact your administration.</div>)}
         </div>
         
-        {/* EDITED: Restructured quick login section */}
         {isLoginView && (
           <div className="quick-login-section">
             <p className="quick-login-title">For Demonstration (Pune Logins)</p>
@@ -134,6 +133,12 @@ const Login = () => {
             </div>
           </div>
         )}
+        
+        <div className="public-reports-section">
+          <Link to="/officer-progress" className="btn btn-secondary btn-block">
+            View Officer Progress Report
+          </Link>
+        </div>
       </div>
     </div>
   );

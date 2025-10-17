@@ -1,0 +1,57 @@
+/* Worker Progress Page Styles */
+.worker-progress-page {
+  padding: 40px 20px;
+}
+
+.worker-progress-page .page-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  /* You can add a background image here if you have one */
+}
+
+.progress-table-container {
+  padding: 0;
+  overflow-x: auto;
+}
+
+.progress-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.progress-table th,
+.progress-table td {
+  padding: 15px 20px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.progress-table thead {
+  background-color: var(--surface-color);
+}
+
+.progress-table th {
+  font-weight: 600;
+  color: var(--text-color-light);
+}
+
+.progress-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.resolution-time {
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.no-data-message {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-color-light);
+}
+
+.no-data-message svg {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}

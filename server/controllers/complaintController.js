@@ -197,27 +197,23 @@ export const addFeedbackToComplaint = asyncHandler(async (req, res) => {
     throw new Error('Complaint not found');
   }
 
-  // Security Check: Only the original reporter can add feedback.
   if (complaint.reportedBy.toString() !== req.user.id) {
     res.status(403);
     throw new Error('You are not authorized to provide feedback for this complaint.');
   }
 
-  // Add the new feedback to the beginning of the feedbacks array
   complaint.feedbacks.unshift({
     user: req.user._id,
     satisfaction,
     comment,
   });
 
-  // Update the feedback counts
   if (satisfaction === 'Positive') {
     complaint.positiveFeedbackCount += 1;
   } else {
     complaint.negativeFeedbackCount += 1;
   }
   
-  // Update the complaint status
   complaint.status = 'FeedbackProvided';
 
   await complaint.save();
@@ -225,3 +221,90 @@ export const addFeedbackToComplaint = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, message: 'Thank you for your feedback!' });
 });
 
+/**
+ * @desc    Get worker progress report (by an Officer)
+ * @route   GET /api/complaints/progress
+ * @access  Private (Officer)
+ */
+export const getWorkerProgress = asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.city) {
+    res.status(400);
+    throw new Error('User city not found. Cannot fetch progress.');
+  }
+
+  const resolvedComplaints = await Complaint.find({
+    city: req.user.city,
+    status: { $in: ['Resolved', 'Verified', 'FeedbackProvided', 'Closed'] },
+    assignedTo: { $exists: true },
+    resolvedAt: { $exists: true }
+  })
+    .populate('assignedTo', 'name')
+    .sort({ resolvedAt: -1 });
+
+  const progressReport = resolvedComplaints.map(complaint => {
+    const timeAssigned = new Date(complaint.createdAt).getTime();
+    const timeResolved = new Date(complaint.resolvedAt).getTime();
+    const resolutionTimeMs = timeResolved - timeAssigned;
+
+    const hours = Math.floor(resolutionTimeMs / (1000 * 60 * 60));
+    const minutes = Math.floor((resolutionTimeMs % (1000 * 60 * 60)) / (1000 * 60));
+    const resolutionTime = `${hours}h ${minutes}m`;
+
+    return {
+      _id: complaint._id,
+      binId: complaint.binId,
+      issueType: complaint.issueType,
+      workerName: complaint.assignedTo ? complaint.assignedTo.name : 'Unknown',
+      assignedAt: complaint.createdAt,
+      resolvedAt: complaint.resolvedAt,
+      resolutionTime,
+    };
+  });
+
+  res.json({ success: true, data: progressReport });
+});
+
+/**
+ * @desc    Get officer progress report for all cities
+ * @route   GET /api/complaints/officer-progress
+ * @access  Public
+ */
+export const getOfficerProgress = asyncHandler(async (req, res) => {
+  const relevantComplaints = await Complaint.find({
+    status: { $in: ['Verified', 'FeedbackProvided', 'Closed'] },
+    assignedTo: { $exists: true },
+    notifiedAt: { $exists: true },
+    verifiedBy: { $exists: true }
+  })
+    .populate('verifiedBy', 'name city')
+    .sort({ notifiedAt: -1 });
+
+  const officerProgressReport = relevantComplaints.map(complaint => {
+    const timeCreated = new Date(complaint.createdAt).getTime();
+    const timeAssigned = new Date(complaint.createdAt).getTime();
+    const timeNotified = new Date(complaint.notifiedAt).getTime();
+
+    const timeToAssignMs = timeAssigned - timeCreated;
+    const assignHours = Math.floor(timeToAssignMs / (1000 * 60 * 60));
+    const assignMinutes = Math.floor((timeToAssignMs % (1000 * 60 * 60)) / (1000 * 60));
+    const assignmentTime = `${assignHours}h ${assignMinutes}m`;
+
+    const totalResolutionTimeMs = timeNotified - timeCreated;
+    const totalHours = Math.floor(totalResolutionTimeMs / (1000 * 60 * 60));
+    const totalMinutes = Math.floor((totalResolutionTimeMs % (1000 * 60 * 60)) / (1000 * 60));
+    const totalTime = `${totalHours}h ${totalMinutes}m`;
+
+    return {
+      _id: complaint._id,
+      issueType: complaint.issueType,
+      officerName: complaint.verifiedBy ? complaint.verifiedBy.name : 'Unknown Officer',
+      city: complaint.city,
+      createdAt: complaint.createdAt,
+      notifiedAt: complaint.notifiedAt,
+      assignmentTime,
+      totalTime,
+    };
+  });
+
+  res.json({ success: true, data: officerProgressReport });
+});
