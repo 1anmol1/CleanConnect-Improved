@@ -1,6 +1,5 @@
 import express from 'express';
 const router = express.Router();
-
 import { protect, authorize } from '../middleware/authMiddleware.js';
 import upload from '../middleware/uploadMiddleware.js';
 
@@ -15,7 +14,7 @@ import {
   bulkDeleteComplaints,
   getWorkerResolutions,
   addFeedbackToComplaint,
-  voteOnComplaint // <-- Import new function
+  voteOnComplaint
 } from '../controllers/complaintController.js';
 
 router.route('/')

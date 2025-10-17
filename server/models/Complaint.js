@@ -17,8 +17,9 @@ const complaintSchema = new mongoose.Schema(
     status: {
       type: String,
       required: true,
-      enum: ['Pending', 'Assigned', 'Resolved', 'Verified', 'Reopened', 'FeedbackProvided', 'Closed'],
-      default: 'Pending',
+      // NEW: Added 'AwaitingApproval' and 'Rejected' statuses
+      enum: ['AwaitingApproval', 'Pending', 'Assigned', 'Resolved', 'Verified', 'Reopened', 'FeedbackProvided', 'Closed', 'Rejected'],
+      default: 'AwaitingApproval',
     },
     priority: {
       type: String,
@@ -59,10 +60,7 @@ const complaintSchema = new mongoose.Schema(
     notifiedAt: {
         type: Date,
     },
-    reportCount: {
-        type: Number,
-        default: 1,
-    },
+    // NEW Fields for Voting
     likes: {
       type: Number,
       default: 0
@@ -75,6 +73,7 @@ const complaintSchema = new mongoose.Schema(
       type: mongoose.Schema.ObjectId,
       ref: 'User'
     }],
+    // ---
     feedbacks: [
       {
         user: { type: mongoose.Schema.ObjectId, ref: 'User' },

@@ -58,6 +58,7 @@ export const createComplaint = asyncHandler(async (req, res) => {
     area: req.user.area,
     imageUrl: `/uploads/${req.file.filename}`,
     priority: getPriority(issueType), // NEW: Assigns priority based on issue type
+    status: 'AwaitingApproval', // NEW: Starts in a pre-pending state
   });
 
   // NEW: Broadcast a notification to all other citizens in the same city
@@ -66,7 +67,7 @@ export const createComplaint = asyncHandler(async (req, res) => {
     return Notification.create({
       user: citizen._id,
       title: `New Issue Reported in ${complaint.area}`,
-      message: `A citizen reported an issue: "${complaint.issueType}". You can view and vote on it.`,
+      message: `A citizen reported an issue: "${complaint.issueType}". You can view and vote on its authenticity.`,
       type: 'Broadcast',
       relatedComplaint: complaint._id, // Links the notification to the new complaint
     });
@@ -76,13 +77,13 @@ export const createComplaint = asyncHandler(async (req, res) => {
 
   res.status(201).json({ 
     success: true, 
-    message: 'Report submitted successfully and citizens notified!',
+    message: 'Report submitted for community verification!',
     data: complaint 
   });
 });
 
 /**
- * @desc    Allow a citizen to vote on a complaint and trigger auto-assignment
+ * @desc    Allow a citizen to vote on a complaint and trigger status changes
  * @route   PUT /api/complaints/:id/vote
  * @access  Private (Citizen)
  */
@@ -101,23 +102,28 @@ export const voteOnComplaint = asyncHandler(async (req, res) => {
   
     if (voteType === 'like') {
       complaint.likes += 1;
+      // On the first like, the complaint becomes visible to the officer
+      if (complaint.likes === 1) {
+        complaint.status = 'Pending';
+      }
     } else if (voteType === 'dislike') {
       complaint.dislikes += 1;
+      // On the first dislike, the complaint is rejected
+      complaint.status = 'Rejected';
+      complaint.assignedTo = undefined; // Ensure it's not assigned
     } else {
       res.status(400); throw new Error('Invalid vote type.');
     }
   
     complaint.votedBy.push(userId);
-    await complaint.save();
-  
+    
     // NEW: Automatic Assignment Logic
-    if (complaint.likes > 2 && complaint.status === 'Pending') {
+    if (complaint.likes >= 2 && complaint.status === 'Pending') {
       const suresh = await User.findOne({ name: 'Suresh' }); // Find the specific worker
       if (suresh) {
         complaint.assignedTo = suresh._id;
         complaint.status = 'Assigned';
-        await complaint.save();
-        // Optional: Notify the worker about the auto-assignment
+        // Optional: Notify the worker
         await Notification.create({
             user: suresh._id,
             title: 'Auto-Assigned High-Priority Task',
@@ -126,8 +132,8 @@ export const voteOnComplaint = asyncHandler(async (req, res) => {
         });
       }
     }
-    // ---
   
+    await complaint.save();
     res.json({ success: true, data: complaint });
   });
 
@@ -302,40 +308,89 @@ export const addFeedbackToComplaint = asyncHandler(async (req, res) => {
 });
 
 /**
- * @desc    Get worker progress report with rankings and individual stats
+ * @desc    Get worker progress report (by an Officer)
  * @route   GET /api/complaints/progress
  * @access  Private (Officer)
  */
 export const getWorkerProgress = asyncHandler(async (req, res) => {
   if (!req.user || !req.user.city) {
     res.status(400);
-    throw new Error('User city not found.');
+    throw new Error('User city not found. Cannot fetch progress.');
   }
 
-  const workerPerformance = await Complaint.aggregate([
-    { $match: { city: req.user.city, status: { $in: ['Resolved', 'Verified', 'FeedbackProvided', 'Closed'] }, assignedTo: { $exists: true }, resolvedAt: { $exists: true } } },
-    { $addFields: { resolutionTimeMinutes: { $divide: [{ $subtract: ["$resolvedAt", "$createdAt"] }, 1000 * 60] } } },
-    { $group: { _id: "$assignedTo", averageResolutionTime: { $avg: "$resolutionTimeMinutes" }, complaintsSolved: { $sum: 1 }, resolutions: { $push: { issueType: "$issueType", resolutionTimeMinutes: "$resolutionTimeMinutes" } } } },
-    { $sort: { averageResolutionTime: 1 } },
-    { $lookup: { from: "users", localField: "_id", foreignField: "_id", as: "workerInfo" } },
-    { $project: { _id: 0, workerId: "$_id", workerName: { $arrayElemAt: ["$workerInfo.name", 0] }, complaintsSolved: 1, averageResolutionTime: 1, resolutions: 1 } }
-  ]);
-  res.json({ success: true, data: workerPerformance });
+  const resolvedComplaints = await Complaint.find({
+    city: req.user.city,
+    status: { $in: ['Resolved', 'Verified', 'FeedbackProvided', 'Closed'] },
+    assignedTo: { $exists: true },
+    resolvedAt: { $exists: true }
+  })
+    .populate('assignedTo', 'name')
+    .sort({ resolvedAt: -1 });
+
+  const progressReport = resolvedComplaints.map(complaint => {
+    const timeAssigned = new Date(complaint.createdAt).getTime();
+    const timeResolved = new Date(complaint.resolvedAt).getTime();
+    const resolutionTimeMs = timeResolved - timeAssigned;
+
+    const hours = Math.floor(resolutionTimeMs / (1000 * 60 * 60));
+    const minutes = Math.floor((resolutionTimeMs % (1000 * 60 * 60)) / (1000 * 60));
+    const resolutionTime = `${hours}h ${minutes}m`;
+
+    return {
+      _id: complaint._id,
+      binId: complaint.binId,
+      issueType: complaint.issueType,
+      workerName: complaint.assignedTo ? complaint.assignedTo.name : 'Unknown',
+      assignedAt: complaint.createdAt,
+      resolvedAt: complaint.resolvedAt,
+      resolutionTime,
+    };
+  });
+
+  res.json({ success: true, data: progressReport });
 });
 
 /**
- * @desc    Get officer progress report with rankings and individual stats
+ * @desc    Get officer progress report for all cities
  * @route   GET /api/complaints/officer-progress
  * @access  Public
  */
 export const getOfficerProgress = asyncHandler(async (req, res) => {
-  const officerPerformance = await Complaint.aggregate([
-    { $match: { status: { $in: ['Verified', 'FeedbackProvided', 'Closed'] }, verifiedBy: { $exists: true }, notifiedAt: { $exists: true } } },
-    { $addFields: { totalResolutionTimeMinutes: { $divide: [{ $subtract: ["$notifiedAt", "$createdAt"] }, 1000 * 60] } } },
-    { $group: { _id: "$verifiedBy", averageTotalTime: { $avg: "$totalResolutionTimeMinutes" }, complaintsVerified: { $sum: 1 }, resolutions: { $push: { issueType: "$issueType", totalResolutionTimeMinutes: "$totalResolutionTimeMinutes" } } } },
-    { $sort: { averageTotalTime: 1 } },
-    { $lookup: { from: "users", localField: "_id", foreignField: "_id", as: "officerInfo" } },
-    { $project: { _id: 0, officerId: "$_id", officerName: { $arrayElemAt: ["$officerInfo.name", 0] }, city: { $arrayElemAt: ["$officerInfo.city", 0] }, complaintsVerified: 1, averageTotalTime: 1, resolutions: 1 } }
-  ]);
-  res.json({ success: true, data: officerPerformance });
+  const relevantComplaints = await Complaint.find({
+    status: { $in: ['Verified', 'FeedbackProvided', 'Closed'] },
+    assignedTo: { $exists: true },
+    notifiedAt: { $exists: true },
+    verifiedBy: { $exists: true }
+  })
+    .populate('verifiedBy', 'name city')
+    .sort({ notifiedAt: -1 });
+
+  const officerProgressReport = relevantComplaints.map(complaint => {
+    const timeCreated = new Date(complaint.createdAt).getTime();
+    const timeAssigned = new Date(complaint.createdAt).getTime();
+    const timeNotified = new Date(complaint.notifiedAt).getTime();
+
+    const timeToAssignMs = timeAssigned - timeCreated;
+    const assignHours = Math.floor(timeToAssignMs / (1000 * 60 * 60));
+    const assignMinutes = Math.floor((timeToAssignMs % (1000 * 60 * 60)) / (1000 * 60));
+    const assignmentTime = `${assignHours}h ${assignMinutes}m`;
+
+    const totalResolutionTimeMs = timeNotified - timeCreated;
+    const totalHours = Math.floor(totalResolutionTimeMs / (1000 * 60 * 60));
+    const totalMinutes = Math.floor((totalResolutionTimeMs % (1000 * 60 * 60)) / (1000 * 60));
+    const totalTime = `${totalHours}h ${totalMinutes}m`;
+
+    return {
+      _id: complaint._id,
+      issueType: complaint.issueType,
+      officerName: complaint.verifiedBy ? complaint.verifiedBy.name : 'Unknown Officer',
+      city: complaint.city,
+      createdAt: complaint.createdAt,
+      notifiedAt: complaint.notifiedAt,
+      assignmentTime,
+      totalTime,
+    };
+  });
+
+  res.json({ success: true, data: officerProgressReport });
 });

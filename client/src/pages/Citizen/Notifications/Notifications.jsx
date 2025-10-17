@@ -16,10 +16,7 @@ const Notifications = () => {
   const { user } = useAuth();
 
   const fetchNotifications = async () => {
-    // Set loading to true only if it's the initial fetch
-    if (loading) {
-        setLoading(true);
-    }
+    // We don't set loading to true on refetch, only on initial load
     try {
       const token = localStorage.getItem('token');
       const { data } = await axios.get('/api/notifications/my-notifications', {
@@ -112,10 +109,10 @@ const Notifications = () => {
                   )}
                   <small>{new Date(notif.createdAt).toLocaleString()}</small>
 
-                  {/* NEW: Voting Section */}
+                  {/* NEW: Voting Section for Broadcasts */}
                   {notif.type === 'Broadcast' && notif.relatedComplaint && (
                     <div className="vote-section">
-                        <span>Does this issue affect you?</span>
+                        <span>Is this report genuine?</span>
                         <div className="vote-buttons">
                             <button onClick={() => handleVote(notif.relatedComplaint, 'like')} disabled={notif.voted}>
                                 <FaThumbsUp /> Yes
