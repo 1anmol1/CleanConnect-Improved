@@ -48,21 +48,20 @@ const importData = async () => {
     console.log('Cities and Areas Imported!');
 
     // Step 3: Create the user data with securely hashed passwords.
+    // MODIFIED: All users are now in Pune and Kothrud for easier testing.
     const usersToCreate = [
-      // Existing Citizens
+      // Citizens all in Kothrud, Pune
       { name: 'Anjali', email: 'citizen.pune@test.com', password: await bcrypt.hash('password123', 10), role: 'Citizen', city: 'Pune', area: 'Kothrud', addressLine: '123 Kothrud Lane', location: 'Kothrud, Pune' },
-      { name: 'Rohan', email: 'citizen.kop@test.com', password: await bcrypt.hash('password123', 10), role: 'Citizen', city: 'Kolhapur', area: 'Shahupuri', addressLine: '456 Shahupuri Road', location: 'Shahupuri, Kolhapur' },
-      
-      // New Citizens for Dropdown
-      { name: 'Aditya', email: 'aditya.pune@test.com', password: await bcrypt.hash('password123', 10), role: 'Citizen', city: 'Pune', area: 'Aundh', addressLine: '101 Aundh High Street', location: 'Aundh, Pune' },
-      { name: 'Yogesh', email: 'yogesh.mumbai@test.com', password: await bcrypt.hash('password123', 10), role: 'Citizen', city: 'Mumbai', area: 'Andheri', addressLine: '202 Andheri West', location: 'Andheri, Mumbai' },
-      { name: 'Shravani', email: 'shravani.pune@test.com', password: await bcrypt.hash('password123', 10), role: 'Citizen', city: 'Pune', area: 'Viman Nagar', addressLine: '303 Viman Nagar Road', location: 'Viman Nagar, Pune' },
-      { name: 'Raj', email: 'raj.kop@test.com', password: await bcrypt.hash('password123', 10), role: 'Citizen', city: 'Kolhapur', area: 'Rajarampuri', addressLine: '404 Rajarampuri Lane', location: 'Rajarampuri, Kolhapur' },
+      { name: 'Rohan', email: 'rohan.pune@test.com', password: await bcrypt.hash('password123', 10), role: 'Citizen', city: 'Pune', area: 'Kothrud', addressLine: '456 Kothrud Road', location: 'Kothrud, Pune' },
+      { name: 'Aditya', email: 'aditya.pune@test.com', password: await bcrypt.hash('password123', 10), role: 'Citizen', city: 'Pune', area: 'Kothrud', addressLine: '101 Kothrud High Street', location: 'Kothrud, Pune' },
+      { name: 'Yogesh', email: 'yogesh.pune@test.com', password: await bcrypt.hash('password123', 10), role: 'Citizen', city: 'Pune', area: 'Kothrud', addressLine: '202 Kothrud West', location: 'Kothrud, Pune' },
+      { name: 'Shravani', email: 'shravani.pune@test.com', password: await bcrypt.hash('password123', 10), role: 'Citizen', city: 'Pune', area: 'Kothrud', addressLine: '303 Kothrud Road', location: 'Kothrud, Pune' },
+      { name: 'Raj', email: 'raj.pune@test.com', password: await bcrypt.hash('password123', 10), role: 'Citizen', city: 'Pune', area: 'Kothrud', addressLine: '404 Kothrud Lane', location: 'Kothrud, Pune' },
 
-      // Workers
+      // Workers all in Kothrud, Pune
       { name: 'Suresh', email: 'worker.pune@test.com', workerId: 'WKR-PUNE-01', password: await bcrypt.hash('password123', 10), role: 'Worker', city: 'Pune', area: 'Kothrud', liveLocation: { type: 'Point', coordinates: [73.79, 18.515]}},
-      { name: 'Rakesh', email: 'rakesh.pune@test.com', workerId: 'WKR-PUNE-02', password: await bcrypt.hash('password123', 10), role: 'Worker', city: 'Pune', area: 'Aundh' },
-      { name: 'Amit', email: 'worker.mumbai@test.com', workerId: 'WKR-MUM-01', password: await bcrypt.hash('password123', 10), role: 'Worker', city: 'Mumbai', area: 'Andheri', liveLocation: { type: 'Point', coordinates: [72.86, 19.11]}},
+      { name: 'Rakesh', email: 'rakesh.pune@test.com', workerId: 'WKR-PUNE-02', password: await bcrypt.hash('password123', 10), role: 'Worker', city: 'Pune', area: 'Kothrud' },
+      { name: 'Amit', email: 'amit.pune@test.com', workerId: 'WKR-PUNE-03', password: await bcrypt.hash('password123', 10), role: 'Worker', city: 'Pune', area: 'Kothrud', liveLocation: { type: 'Point', coordinates: [73.80, 18.51]}},
       
       // Officers
       { name: 'Priya', email: 'officer.pune@test.com', password: await bcrypt.hash('password123', 10), role: 'Officer', city: 'Pune' },
@@ -93,31 +92,27 @@ const importData = async () => {
     // Step 5: Loop through each created parent bin to generate its children.
     const childBinsToCreate = [];
     for (const parent of createdParentBins) {
-        // Helper function to create the specific ID format you requested (e.g., 'pktd01-a')
         const getChildId = (suffix) => {
-            const parts = parent.binId.split('-'); // e.g., ['PUNE', 'KTD', '01']
-            if (parts.length < 3) return `${parent.binId.toLowerCase()}-${suffix}`; // Fallback
-            const prefix = `${parts[0].slice(0, 1)}${parts[1].slice(0, 3)}`.toLowerCase(); // 'p' + 'ktd' -> 'pktd'
+            const parts = parent.binId.split('-');
+            if (parts.length < 3) return `${parent.binId.toLowerCase()}-${suffix}`;
+            const prefix = `${parts[0].slice(0, 1)}${parts[1].slice(0, 3)}`.toLowerCase();
             const number = parts[2];
-            return `${prefix}${number}-${suffix}`; // 'pktd01-a'
+            return `${prefix}${number}-${suffix}`;
         };
         
-        // Create child 'a'
         childBinsToCreate.push({
             binId: getChildId('a'),
-            isSmartBin: false, // Mark this as a manual (non-IoT) bin
-            parentBin: parent._id, // Link to the parent bin's unique MongoDB ID
+            isSmartBin: false,
+            parentBin: parent._id,
             city: parent.city,
             area: parent.area,
-            location: { // Give it a slightly different location for map display
+            location: {
                 type: 'Point',
                 coordinates: [parent.location.coordinates[0] + 0.0005, parent.location.coordinates[1] + 0.0005],
             },
-            // Generate a random fill level between 20 and 80 for the manual bin
             manualFillLevel: Math.floor(Math.random() * 61) + 20,
             lastManualUpdate: new Date(),
         });
-        // Create child 'b'
         childBinsToCreate.push({
             binId: getChildId('b'),
             isSmartBin: false,
@@ -133,15 +128,14 @@ const importData = async () => {
         });
     }
 
-    // Insert all the generated child bins into the database at once for efficiency.
     await Bin.insertMany(childBinsToCreate);
     console.log(`${childBinsToCreate.length} Child Bins Imported!`);
 
     console.log('Data Import Complete!');
-    process.exit(); // Exit the script successfully.
+    process.exit();
   } catch (error) {
     console.error(`Error with data import: ${error}`);
-    process.exit(1); // Exit with an error code.
+    process.exit(1);
   }
 };
 
@@ -160,11 +154,9 @@ const destroyData = async () => {
   }
 };
 
-// This is the main function that runs the script.
 const run = async () => {
   try {
     await connectDB();
-    // It checks if you passed the '--delete' argument in the command line.
     if (process.argv[2] === '--delete') {
       await destroyData();
     } else {
@@ -176,5 +168,4 @@ const run = async () => {
   }
 };
 
-// Start the entire process.
 run();
