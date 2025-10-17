@@ -14,9 +14,15 @@ import {
   bulkDeleteComplaints,
   getWorkerResolutions,
   addFeedbackToComplaint,
-  voteOnComplaint
+  voteOnComplaint,
+  getWorkerProgress,
+  getOfficerProgress // <-- Make sure this is imported
 } from '../controllers/complaintController.js';
 
+// --- PUBLIC ROUTES ---
+router.route('/officer-progress').get(getOfficerProgress); // <-- THIS IS THE MISSING ROUTE
+
+// --- PROTECTED ROUTES ---
 router.route('/')
   .get(protect, authorize('Officer'), getComplaints)
   .post(protect, authorize('Citizen'), upload.single('photo'), createComplaint);
@@ -24,10 +30,10 @@ router.route('/')
 router.route('/my-history').get(protect, authorize('Citizen'), getMyComplaints);
 router.route('/my-resolutions').get(protect, authorize('Worker'), getWorkerResolutions);
 router.route('/bulk-delete').post(protect, authorize('Officer'), bulkDeleteComplaints);
+router.route('/progress').get(protect, authorize('Officer'), getWorkerProgress);
 
-// New route for voting
+// Routes with ID parameter
 router.route('/:id/vote').put(protect, authorize('Citizen'), voteOnComplaint);
-
 router.route('/:id/feedback').put(protect, authorize('Citizen'), addFeedbackToComplaint);
 router.route('/:id/assign').put(protect, authorize('Officer'), assignComplaint);
 router.route('/:id/resolve').put(protect, authorize('Worker'), upload.single('resolutionPhoto'), resolveComplaint);

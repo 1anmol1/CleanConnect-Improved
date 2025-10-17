@@ -3,23 +3,29 @@ import Notification from '../models/Notification.js';
 import Complaint from '../models/Complaint.js'; 
 import User from '../models/User.js'; 
 
-// Get all notifications for the logged-in user (paginated, fast)
+/**
+ * @desc    Get all notifications for the logged-in user, now with complaint details
+ * @route   GET /api/notifications/my-notifications
+ * @access  Private
+ */
 export const getMyNotifications = asyncHandler(async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 30;
-  const skip = (page - 1) * limit;
-  // Only fetch the most recent notifications
-  const [notifications, total] = await Promise.all([
-    Notification.find({ user: req.user.id })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit),
-    Notification.countDocuments({ user: req.user.id })
-  ]);
-  res.status(200).json({ success: true, count: notifications.length, total, data: notifications });
+  const notifications = await Notification.find({ user: req.user.id })
+    .sort({ createdAt: -1 })
+    // NEW & CRITICAL: This joins the notification with its related complaint data,
+    // including the image URL, description, and voting status needed by the frontend.
+    .populate({
+        path: 'relatedComplaint',
+        select: 'issueType description imageUrl votedBy' 
+    });
+
+  res.status(200).json({ success: true, data: notifications });
 });
 
-// Delete a notification
+/**
+ * @desc    Delete a notification
+ * @route   DELETE /api/notifications/:id
+ * @access  Private
+ */
 export const deleteNotification = asyncHandler(async (req, res) => {
   const notification = await Notification.findById(req.params.id);
   if (!notification) { res.status(404); throw new Error('Notification not found'); }
@@ -28,7 +34,11 @@ export const deleteNotification = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, message: 'Notification deleted.' });
 });
 
-// Create a general broadcast notification (for Officers)
+/**
+ * @desc    Create a general broadcast notification (for Officers)
+ * @route   POST /api/notifications
+ * @access  Private (Officer)
+ */
 export const createNotification = asyncHandler(async (req, res) => {
   const { title, message, targetRole, targetCity, targetArea } = req.body;
   if (!title || !message || !targetRole || !targetCity) {
@@ -37,7 +47,6 @@ export const createNotification = asyncHandler(async (req, res) => {
 
   let userQuery = { city: targetCity };
   if (targetRole === 'All') {
-    // All users in city (both roles)
     userQuery.role = { $in: ['Citizen', 'Worker'] };
   } else {
     userQuery.role = targetRole;
@@ -50,24 +59,22 @@ export const createNotification = asyncHandler(async (req, res) => {
   if (targetUsers.length === 0) {
     res.status(404); throw new Error('No target users found.');
   }
-  // Batch insert notifications in chunks to avoid event loop blocking
   const notificationsToCreate = targetUsers.map(user => ({ user: user._id, title, message, type: 'Broadcast' }));
-  const batchSize = 100;
-  for (let i = 0; i < notificationsToCreate.length; i += batchSize) {
-    await Notification.insertMany(notificationsToCreate.slice(i, i + batchSize));
-  }
+  await Notification.insertMany(notificationsToCreate);
   res.status(201).json({ success: true, message: `Notification sent to ${targetUsers.length} user(s).` });
 });
 
-// Send a specific notification for a resolved complaint
+/**
+ * @desc    Send a specific notification for a resolved complaint
+ * @route   POST /api/notifications/send-resolution
+ * @access  Private (Officer)
+ */
 export const sendResolutionNotification = asyncHandler(async (req, res) => {
-  // Accept only complaintId for this route
   const { complaintId } = req.body;
   if (!complaintId) { res.status(400); throw new Error('Complaint ID is required.'); }
 
   const complaint = await Complaint.findById(complaintId).populate('reportedBy');
-  if (!complaint) { res.status(404); throw new Error('Complaint not found.'); }
-  if (!complaint.reportedBy) { res.status(404); throw new Error('Complaint is missing a reporter.'); }
+  if (!complaint || !complaint.reportedBy) { res.status(404); throw new Error('Complaint or reporter not found.'); }
 
   const citizen = complaint.reportedBy;
   const linkToken = '__LINK_TO_COMPLAINT_HISTORY__';

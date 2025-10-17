@@ -5,7 +5,7 @@ const notificationSchema = new mongoose.Schema({
     type: mongoose.Schema.ObjectId,
     ref: 'User',
     required: true,
-    index: true // For fast user-based queries
+    index: true
   },
   title: {
     type: String,
@@ -24,9 +24,15 @@ const notificationSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  // --- THIS IS THE NEW, REQUIRED FIELD ---
+  relatedComplaint: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'Complaint' // This links the notification to a specific complaint
+  }
 }, {
   timestamps: true,
 });
+
 // Compound index for fast user+date queries
 notificationSchema.index({ user: 1, createdAt: -1 });
 

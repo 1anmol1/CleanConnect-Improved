@@ -28,8 +28,8 @@ export const getComplaints = asyncHandler(async (req, res) => {
     throw new Error('User city not found. Cannot fetch complaints.');
   }
 
-  // UPDATED: Sorts complaints by priority (Emergency first), then by likes, then by oldest
-  const complaints = await Complaint.find({ city: req.user.city })
+  // UPDATED: Now only shows complaints that are approved, and sorts them by priority
+  const complaints = await Complaint.find({ city: req.user.city, status: { $ne: 'AwaitingApproval' } })
     .populate('assignedTo', 'name')
     .sort({ priority: -1, likes: -1, createdAt: 1 });
 
@@ -37,7 +37,7 @@ export const getComplaints = asyncHandler(async (req, res) => {
 });
 
 /**
- * @desc    Create a new complaint, assign priority, and notify citizens
+ * @desc    Create a new complaint, assign priority, and notify citizens for voting
  * @route   POST /api/complaints
  * @access  Private (Citizen)
  */
@@ -57,11 +57,11 @@ export const createComplaint = asyncHandler(async (req, res) => {
     city: req.user.city,
     area: req.user.area,
     imageUrl: `/uploads/${req.file.filename}`,
-    priority: getPriority(issueType), // NEW: Assigns priority based on issue type
-    status: 'AwaitingApproval', // NEW: Starts in a pre-pending state
+    priority: getPriority(issueType),
+    status: 'AwaitingApproval', // NEW: Complaint now waits for community verification
   });
 
-  // NEW: Broadcast a notification to all other citizens in the same city
+  // NEW: Broadcast a notification to all other citizens in the same city to vote
   const citizensInCity = await User.find({ role: 'Citizen', city: req.user.city, _id: { $ne: req.user._id } });
   const notificationPromises = citizensInCity.map(citizen => {
     return Notification.create({
@@ -69,11 +69,10 @@ export const createComplaint = asyncHandler(async (req, res) => {
       title: `New Issue Reported in ${complaint.area}`,
       message: `A citizen reported an issue: "${complaint.issueType}". You can view and vote on its authenticity.`,
       type: 'Broadcast',
-      relatedComplaint: complaint._id, // Links the notification to the new complaint
+      relatedComplaint: complaint._id, // This links the notification to the complaint for voting
     });
   });
   await Promise.all(notificationPromises);
-  // ---
 
   res.status(201).json({ 
     success: true, 
@@ -83,7 +82,7 @@ export const createComplaint = asyncHandler(async (req, res) => {
 });
 
 /**
- * @desc    Allow a citizen to vote on a complaint and trigger status changes
+ * @desc    Allow a citizen to vote on a complaint, which can change its status
  * @route   PUT /api/complaints/:id/vote
  * @access  Private (Citizen)
  */
@@ -108,9 +107,9 @@ export const voteOnComplaint = asyncHandler(async (req, res) => {
       }
     } else if (voteType === 'dislike') {
       complaint.dislikes += 1;
-      // On the first dislike, the complaint is rejected
+      // On the first dislike, the complaint is rejected and hidden
       complaint.status = 'Rejected';
-      complaint.assignedTo = undefined; // Ensure it's not assigned
+      complaint.assignedTo = undefined; // Ensure it cannot be assigned
     } else {
       res.status(400); throw new Error('Invalid vote type.');
     }
@@ -123,7 +122,7 @@ export const voteOnComplaint = asyncHandler(async (req, res) => {
       if (suresh) {
         complaint.assignedTo = suresh._id;
         complaint.status = 'Assigned';
-        // Optional: Notify the worker
+        // Notify the worker about the auto-assignment
         await Notification.create({
             user: suresh._id,
             title: 'Auto-Assigned High-Priority Task',
@@ -135,7 +134,7 @@ export const voteOnComplaint = asyncHandler(async (req, res) => {
   
     await complaint.save();
     res.json({ success: true, data: complaint });
-  });
+});
 
 /**
  * @desc    Assign a complaint to a worker (by an Officer)

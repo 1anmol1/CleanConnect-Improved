@@ -16,7 +16,7 @@ const getDistance = (coord1, coord2) => {
   return R * c;
 };
 
-// Dijkstra-like approach: Find the nearest neighbor, but always handle higher priorities first.
+// Simplified Dijkstra-like approach: Find the nearest neighbor, but always handle higher priorities first.
 const optimizeRouteByPriorityAndDistance = (startLocation, tasks) => {
   if (!tasks || tasks.length === 0) return [];
   

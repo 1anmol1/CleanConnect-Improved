@@ -14,7 +14,7 @@
 
 .notification-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* Aligns icon to the top */
   gap: 1.5rem;
   padding: 1.5rem;
   transition: all 0.2s ease-in-out;
@@ -29,6 +29,7 @@
   font-size: 1.5rem;
   color: var(--primary-color);
   flex-shrink: 0;
+  margin-top: 5px; /* Aligns icon nicely with the title */
 }
 
 .notification-content {
@@ -46,7 +47,7 @@
   color: var(--text-color-light);
 }
 
-/* --- THE NEW DELETE BUTTON STYLES --- */
+/* --- DELETE BUTTON STYLES --- */
 .delete-notification-btn {
   background: none;
   border: none;
@@ -63,7 +64,6 @@
   opacity: 0; /* Hidden by default */
 }
 
-/* Show the delete button when hovering over the notification item */
 .notification-item:hover .delete-notification-btn {
   opacity: 1;
 }
@@ -73,7 +73,31 @@
   background-color: #f8d7da; /* Light red background */
 }
 
-/* --- NEW STYLES FOR VOTING SECTION --- */
+/* --- NEW STYLES FOR COMPLAINT DETAILS & VOTING --- */
+.complaint-details-section {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: var(--surface-color);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+}
+
+.complaint-details-section p {
+    font-size: 0.9rem;
+    color: var(--text-color-light);
+}
+
+.notification-image-container {
+    margin-top: 0.5rem;
+}
+
+.notification-image-container img {
+    width: 100%;
+    max-height: 300px;
+    object-fit: cover;
+    border-radius: var(--border-radius);
+}
+
 .vote-section {
   margin-top: 1rem;
   padding-top: 1rem;

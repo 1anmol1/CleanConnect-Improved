@@ -16,7 +16,6 @@ const Notifications = () => {
   const { user } = useAuth();
 
   const fetchNotifications = async () => {
-    // We don't set loading to true on refetch, only on initial load
     try {
       const token = localStorage.getItem('token');
       const { data } = await axios.get('/api/notifications/my-notifications', {
@@ -59,7 +58,7 @@ const Notifications = () => {
         toast.success('Thank you for your vote!');
         // Mark this notification as "voted" locally to disable buttons
         setNotifications(prev => prev.map(n => 
-            n.relatedComplaint === complaintId ? { ...n, voted: true } : n
+            n.relatedComplaint?._id === complaintId ? { ...n, voted: true } : n
         ));
     } catch (error) {
         toast.error(error.response?.data?.error || "Failed to cast vote.");
@@ -67,12 +66,9 @@ const Notifications = () => {
   };
 
   const parseMessage = (message) => {
-    const urlRegex = /(https?:\/\/[^\s]+(\.png|\.jpg|\.jpeg|\.gif))/g;
     const linkToken = '__LINK_TO_COMPLAINT_HISTORY__';
-    let imageUrl = null;
-    let textWithToken = message.replace(urlRegex, (url) => { imageUrl = url; return ''; }).replace('Proof Image:', '').trim();
-    const textParts = textWithToken.split(linkToken);
-    return { textParts, imageUrl };
+    const textParts = message.split(linkToken);
+    return { textParts };
   };
 
   if (loading) return <Loader text="Loading notifications..." />;
@@ -91,7 +87,9 @@ const Notifications = () => {
           </div>
         ) : (
           notifications.map(notif => {
-            const { textParts, imageUrl } = parseMessage(notif.message);
+            const { textParts } = parseMessage(notif.message);
+            const complaint = notif.relatedComplaint; // The full complaint object
+
             return (
               <div key={notif._id} className="notification-item card">
                 <FaBell className="notification-icon" />
@@ -102,22 +100,31 @@ const Notifications = () => {
                     {textParts.length > 1 && (<Link to="/citizen/profile" className="notification-link">Complaint History</Link>)}
                     {textParts[1]}
                   </p>
-                  {imageUrl && (
-                    <div className="notification-image-container">
-                      <a href={imageUrl} target="_blank" rel="noopener noreferrer"><img src={imageUrl} alt="Resolution Proof" /></a>
+                  
+                  {/* NEW: Display image and details if it's a broadcast about a complaint */}
+                  {notif.type === 'Broadcast' && complaint && (
+                    <div className="complaint-details-section">
+                      <p><strong>Description:</strong> {complaint.description}</p>
+                      {complaint.imageUrl && (
+                        <div className="notification-image-container">
+                          <a href={complaint.imageUrl} target="_blank" rel="noopener noreferrer">
+                            <img src={complaint.imageUrl} alt="Issue reported by a citizen" />
+                          </a>
+                        </div>
+                      )}
                     </div>
                   )}
-                  <small>{new Date(notif.createdAt).toLocaleString()}</small>
 
-                  {/* NEW: Voting Section for Broadcasts */}
-                  {notif.type === 'Broadcast' && notif.relatedComplaint && (
+                  <small>{new Date(notif.createdAt).toLocaleString()}</small>
+                  
+                  {notif.type === 'Broadcast' && complaint && (
                     <div className="vote-section">
                         <span>Is this report genuine?</span>
                         <div className="vote-buttons">
-                            <button onClick={() => handleVote(notif.relatedComplaint, 'like')} disabled={notif.voted}>
+                            <button onClick={() => handleVote(complaint._id, 'like')} disabled={notif.voted}>
                                 <FaThumbsUp /> Yes
                             </button>
-                            <button onClick={() => handleVote(notif.relatedComplaint, 'dislike')} disabled={notif.voted}>
+                            <button onClick={() => handleVote(complaint._id, 'dislike')} disabled={notif.voted}>
                                 <FaThumbsDown /> No
                             </button>
                         </div>

@@ -17,15 +17,15 @@ const complaintSchema = new mongoose.Schema(
     status: {
       type: String,
       required: true,
-      // NEW: Added 'AwaitingApproval' and 'Rejected' statuses
+      // NEW: Added 'AwaitingApproval' and 'Rejected' statuses for the voting system
       enum: ['AwaitingApproval', 'Pending', 'Assigned', 'Resolved', 'Verified', 'Reopened', 'FeedbackProvided', 'Closed', 'Rejected'],
-      default: 'AwaitingApproval',
+      default: 'AwaitingApproval', // A new complaint now waits for community approval
     },
     priority: {
       type: String,
       enum: ['Low', 'Medium', 'High', 'Emergency'],
       default: 'Low',
-      index: true, // Index for faster sorting
+      index: true, // Indexing for faster sorting by priority
     },
     reportedBy: {
       type: mongoose.Schema.ObjectId,
@@ -60,7 +60,7 @@ const complaintSchema = new mongoose.Schema(
     notifiedAt: {
         type: Date,
     },
-    // NEW Fields for Voting
+    // NEW Fields for the Voting System
     likes: {
       type: Number,
       default: 0

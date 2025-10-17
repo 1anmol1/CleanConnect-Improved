@@ -1,64 +1,98 @@
-import React, { useState, useEffect } from 'react';
-import { FaTimes, FaCamera } from 'react-icons/fa';
-import UniversalModal from './UniversalModal'; // Using the universal modal
+import React, { useState, useRef, useEffect } from 'react';
+import UniversalModal from './UniversalModal';
+import { toast } from 'react-toastify';
+import { FaImage, FaCamera, FaCheckCircle } from 'react-icons/fa';
 import './ResolveComplaintModal.css';
 
-const ResolveComplaintModal = ({ isOpen, onClose, onSubmit, task }) => {
+const ResolveComplaintModal = ({ isOpen, onClose, onResolve, task }) => {
   const [photo, setPhoto] = useState(null);
-  const [preview, setPreview] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null); // For showing the selected image
+  const [loading, setLoading] = useState(false);
+  
+  // Refs for the hidden file inputs
+  const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
 
-  // Reset state when modal opens for a new task
+  // Reset state when the modal is closed or the task changes
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) {
       setPhoto(null);
-      setPreview(null);
+      setPhotoPreview(null);
+      setLoading(false);
     }
   }, [isOpen]);
-
-  if (!isOpen) return null;
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setPhoto(file);
-      setPreview(URL.createObjectURL(file));
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!photo) {
-      alert('Please upload a photo as proof of resolution.');
+      toast.error("A proof-of-resolution photo is required.");
       return;
     }
-    onSubmit(task._id, photo);
+    setLoading(true);
+    const formData = new FormData();
+    formData.append('resolutionPhoto', photo);
+    
+    // The onResolve function is passed from the parent component (Resolutions.jsx)
+    // We await it to handle the API call logic there.
+    await onResolve(task._id, formData);
+    setLoading(false);
   };
 
   return (
-    <UniversalModal isOpen={isOpen} onClose={onClose}>
-      <div className="resolve-complaint-modal-content">
-        <div className="modal-header">
-          <h2>Resolve Task</h2>
-          <button onClick={onClose} className="modal-close-btn"><FaTimes /></button>
+    <UniversalModal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      title={`Resolve Task: ${task?.issueType}`}
+    >
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <p>Please upload or take a photo to prove that the issue has been resolved.</p>
         </div>
-        <div className="modal-body">
-          <p className="task-info-modal"><strong>Issue:</strong> {task.issueType} - {task.description}</p>
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label htmlFor="resolutionPhoto">Upload Proof of Resolution</label>
-              <input type="file" id="resolutionPhoto" onChange={handleFileChange} accept="image/*" required />
-            </div>
-            {preview && (
-              <div className="image-preview">
-                <img src={preview} alt="Resolution preview" />
-              </div>
-            )}
-            <button type="submit" className="btn btn-primary btn-submit">
-              <FaCamera /> Submit Resolution
+
+        {/* --- NEW FILE INPUT SECTION --- */}
+        <div className="form-group">
+          <label>Attach Proof of Resolution</label>
+          <div className="file-input-buttons">
+            <button type="button" className="btn-file-input" onClick={() => fileInputRef.current.click()}>
+              <FaImage /> Choose from Library
             </button>
-          </form>
+            <button type="button" className="btn-file-input" onClick={() => cameraInputRef.current.click()}>
+              <FaCamera /> Take a Photo
+            </button>
+          </div>
+          {/* Hidden inputs to trigger file selection */}
+          <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" style={{ display: 'none' }} />
+          <input type="file" ref={cameraInputRef} onChange={handleFileChange} accept="image/*" capture="environment" style={{ display: 'none' }} />
+          
+          {photoPreview && (
+            <div className="image-preview-container">
+              <img src={photoPreview} alt="Resolution preview" className="image-preview" />
+            </div>
+          )}
         </div>
-      </div>
+        {/* --- END OF NEW SECTION --- */}
+
+        <div className="modal-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose} disabled={loading}>
+            Cancel
+          </button>
+          <button type="submit" className="btn btn-success" disabled={!photo || loading}>
+            {loading ? 'Submitting...' : <><FaCheckCircle /> Mark as Resolved</>}
+          </button>
+        </div>
+      </form>
     </UniversalModal>
   );
 };
