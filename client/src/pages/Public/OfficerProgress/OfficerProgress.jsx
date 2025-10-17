@@ -6,14 +6,26 @@ import { FaShieldAlt, FaInfoCircle } from 'react-icons/fa';
 import Loader from '../../../components/Loader/Loader.jsx';
 import './OfficerProgress.css';
 
-// Custom Tooltip for the chart
+// ✅ Proper Recharts imports
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
+
+// ✅ Custom Tooltip for Chart
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
       <div className="custom-tooltip">
         <p className="label">{`Complaint #${label}`}</p>
         <p className="intro">{`Total Time: ${payload[0].value.toFixed(0)} minutes`}</p>
-        <p className="desc">{`Issue: ${payload[0].payload.issueType}`}</p>
+        <p className="desc">{`Issue: ${payload[0].payload.issueType || 'Unknown'}`}</p>
       </div>
     );
   }
@@ -25,30 +37,19 @@ const OfficerProgress = () => {
   const [performanceData, setPerformanceData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOfficer, setSelectedOfficer] = useState(null);
-  const [isChartReady, setIsChartReady] = useState(false); // <-- NEW STATE
 
-  // This effect checks if the Recharts library is loaded
-  useEffect(() => {
-    const checkRecharts = () => {
-      if (window.Recharts) {
-        setIsChartReady(true);
-      } else {
-        setTimeout(checkRecharts, 100); // Check again in 100ms
-      }
-    };
-    checkRecharts();
-  }, []);
-
+  // ✅ Fetch Officer Performance Data
   useEffect(() => {
     const fetchOfficerProgress = async () => {
       try {
         const { data } = await axios.get('/api/complaints/officer-progress');
-        setPerformanceData(data.data);
-        if (data.data.length > 0) {
-          setSelectedOfficer(data.data[0]);
-        }
+        const officers = Array.isArray(data?.data) ? data.data : [];
+
+        setPerformanceData(officers);
+        if (officers.length > 0) setSelectedOfficer(officers[0]);
       } catch (error) {
         toast.error('Failed to load the officer progress report.');
+        console.error('Failed to fetch officer progress:', error);
       } finally {
         setLoading(false);
       }
@@ -57,14 +58,17 @@ const OfficerProgress = () => {
     fetchOfficerProgress();
   }, []);
 
-  // If the chart library is ready, destructure the components
-  const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = isChartReady ? window.Recharts : {};
-
-  const chartData = selectedOfficer ? selectedOfficer.resolutions.map((res, index) => ({
-    name: index + 1,
-    time: res.totalResolutionTimeMinutes,
-    issueType: res.issueType,
-  })) : [];
+  // ✅ Safely map chart data
+  const chartData =
+    selectedOfficer?.resolutions?.length > 0
+      ? selectedOfficer.resolutions.map((res, index) => ({
+          name: index + 1,
+          time: typeof res.totalResolutionTimeMinutes === 'number'
+            ? res.totalResolutionTimeMinutes
+            : 0,
+          issueType: res.issueType || 'Unknown',
+        }))
+      : [];
 
   if (loading) {
     return <Loader text="Generating public officer accountability report..." />;
@@ -72,11 +76,13 @@ const OfficerProgress = () => {
 
   return (
     <div className="officer-progress-page container fade-in">
+      {/* HEADER */}
       <header className="page-header">
         <h1><FaShieldAlt /> Officer Accountability Report</h1>
         <p>This public report shows complaint resolution times across all cities.</p>
       </header>
 
+      {/* NO DATA */}
       {performanceData.length === 0 ? (
         <div className="card no-data-message">
           <FaInfoCircle />
@@ -84,24 +90,57 @@ const OfficerProgress = () => {
         </div>
       ) : (
         <div className="performance-layout">
+          
+          {/* CHART CARD */}
           <div className="chart-container card">
-            <h3>Individual Performance: {selectedOfficer?.officerName} ({selectedOfficer?.city})</h3>
-            {isChartReady ? (
+            <h3>
+              Individual Performance: {selectedOfficer?.officerName || 'N/A'} (
+              {selectedOfficer?.city || 'N/A'})
+            </h3>
+
+            {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                <LineChart
+                  data={chartData}
+                  margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" label={{ value: 'Complaint Number', position: 'insideBottom', offset: -5 }} />
-                  <YAxis label={{ value: 'Total Time (Minutes)', angle: -90, position: 'insideLeft' }} />
+                  <XAxis
+                    dataKey="name"
+                    label={{
+                      value: 'Complaint Number',
+                      position: 'insideBottom',
+                      offset: -5,
+                    }}
+                  />
+                  <YAxis
+                    label={{
+                      value: 'Total Time (Minutes)',
+                      angle: -90,
+                      position: 'insideLeft',
+                    }}
+                  />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
-                  <Line type="monotone" dataKey="time" name="Total Resolution Time" stroke="#17a2b8" strokeWidth={2} activeDot={{ r: 8 }} />
+                  <Line
+                    type="monotone"
+                    dataKey="time"
+                    name="Total Resolution Time"
+                    stroke="#17a2b8"
+                    strokeWidth={2}
+                    activeDot={{ r: 8 }}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-              <div>Loading Chart...</div> // Fallback message
+              <div className="no-data-message">
+                <FaInfoCircle />
+                <p>No individual complaint data to display for this officer.</p>
+              </div>
             )}
           </div>
 
+          {/* TABLE CARD */}
           <div className="progress-table-container card">
             <h3>Officer Rankings</h3>
             <table className="progress-table">
@@ -116,16 +155,22 @@ const OfficerProgress = () => {
               </thead>
               <tbody>
                 {performanceData.map((officer, index) => (
-                  <tr 
-                    key={officer.officerId} 
-                    className={selectedOfficer?.officerId === officer.officerId ? 'selected' : ''}
+                  <tr
+                    key={officer.officerId || index}
+                    className={
+                      selectedOfficer?.officerId === officer.officerId ? 'selected' : ''
+                    }
                     onClick={() => setSelectedOfficer(officer)}
                   >
                     <td>{index + 1}</td>
-                    <td>{officer.officerName}</td>
-                    <td>{officer.city}</td>
-                    <td>{officer.complaintsVerified}</td>
-                    <td className="resolution-time">{officer.averageTotalTime.toFixed(0)} mins</td>
+                    <td>{officer.officerName || 'Unknown'}</td>
+                    <td>{officer.city || 'N/A'}</td>
+                    <td>{officer.complaintsVerified ?? 0}</td>
+                    <td className="resolution-time">
+                      {typeof officer.averageTotalTime === 'number'
+                        ? `${officer.averageTotalTime.toFixed(0)} mins`
+                        : 'N/A'}
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -23,7 +23,6 @@ const Resolutions = () => {
       });
       setTasks(data.data);
     } catch (error) {
-      // THE FIX: This now provides a clear, user-facing error message.
       toast.error(error.response?.data?.error || "Could not load your assigned tasks.");
       console.error("Failed to fetch resolutions", error);
     } finally {
@@ -40,10 +39,8 @@ const Resolutions = () => {
     setIsModalOpen(true);
   };
 
-  const handleResolveSubmit = async (taskId, photo) => {
-    const formData = new FormData();
-    formData.append('resolutionPhoto', photo);
-
+  // This function will be passed to the modal to handle the form submission.
+  const handleResolve = async (taskId, formData) => {
     try {
       const token = localStorage.getItem('token');
       await axios.put(`/api/complaints/${taskId}/resolve`, formData, {
@@ -105,10 +102,11 @@ const Resolutions = () => {
         </div>
       </div>
 
+      {/* THE FIX: The prop passed to the modal is now 'onResolve' to match what the modal expects. */}
       <ResolveComplaintModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={handleResolveSubmit}
+        onResolve={handleResolve}
         task={selectedTask}
       />
     </>

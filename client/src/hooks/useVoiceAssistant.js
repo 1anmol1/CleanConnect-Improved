@@ -56,7 +56,7 @@ const useVoiceAssistant = ({ onCommand }) => {
       
       // --- THE FIX IS HERE ---
       // We now listen for a list of simpler, more reliable wake words.
-      const wakeWords = ["hey", "hello clean", "activate", "connect", "hey clean"];
+      const wakeWords = ["connect"];
       
       if (wakeWords.some(word => transcript.includes(word))) {
         console.log(`Wake word detected: "${transcript}"`);
