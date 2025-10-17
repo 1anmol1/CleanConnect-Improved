@@ -72,3 +72,50 @@
   color: #dc3545; /* Red on hover */
   background-color: #f8d7da; /* Light red background */
 }
+
+/* --- NEW STYLES FOR VOTING SECTION --- */
+.vote-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.vote-section span {
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--text-color-light);
+}
+
+.vote-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.vote-buttons button {
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.vote-buttons button:hover:not(:disabled) {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.vote-buttons button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}

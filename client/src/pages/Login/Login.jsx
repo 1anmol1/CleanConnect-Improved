@@ -10,25 +10,44 @@ const Login = () => {
   useScrollToTop();
   const [isLoginView, setIsLoginView] = useState(true);
   const [activeRole, setActiveRole] = useState('Citizen');
-  const [formData, setFormData] = useState({ 
-    name: '', email: '', password: '', 
+  const [formData, setFormData] = useState({
+    name: '', email: '', password: '',
     addressLine: '', location: '', workerId: '', officerId: '', city: ''
   });
   const [locationSuggestions, setLocationSuggestions] = useState([]);
   const [cities, setCities] = useState([]);
-  
+  const [workers, setWorkers] = useState([]);
+  const [citizens, setCitizens] = useState([]); // <-- NEW: State for citizens
+  const [selectedWorkerId, setSelectedWorkerId] = useState('');
+  const [selectedCitizenEmail, setSelectedCitizenEmail] = useState(''); // <-- NEW: State for citizen dropdown
+
   const navigate = useNavigate();
   const { login } = useAuth();
   const formRef = useRef();
 
   useEffect(() => {
-    const fetchCities = async () => {
+    const fetchInitialData = async () => {
       try {
-        const { data } = await axios.get('/api/areas/cities');
-        setCities(data.data);
-      } catch (error) { console.error("Failed to fetch cities", error); }
+        const [citiesRes, workersRes, citizensRes] = await Promise.all([
+          axios.get('/api/areas/cities'),
+          axios.get('/api/users/all-workers'),
+          axios.get('/api/users/all-citizens') // <-- NEW: Fetch all citizens
+        ]);
+        setCities(citiesRes.data.data);
+        setWorkers(workersRes.data.data);
+        setCitizens(citizensRes.data.data);
+
+        if (workersRes.data.data.length > 0) {
+          setSelectedWorkerId(workersRes.data.data[0].workerId);
+        }
+        if (citizensRes.data.data.length > 0) {
+          setSelectedCitizenEmail(citizensRes.data.data[0].email);
+        }
+      } catch (error) {
+        console.error("Failed to fetch initial login data", error);
+      }
     };
-    fetchCities();
+    fetchInitialData();
   }, []);
 
   const onChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -79,9 +98,17 @@ const Login = () => {
   const handleQuickLogin = (role, credentials) => {
     setActiveRole(role);
     setFormData(prev => ({ ...prev, ...credentials }));
-    setTimeout(() => {
-        formRef.current.requestSubmit();
-    }, 0);
+    setTimeout(() => formRef.current.requestSubmit(), 0);
+  };
+  
+  const handleWorkerDropdownLogin = () => {
+    if (!selectedWorkerId) return;
+    handleQuickLogin('Worker', { workerId: selectedWorkerId, password: 'password123' });
+  };
+
+  const handleCitizenDropdownLogin = () => {
+    if (!selectedCitizenEmail) return;
+    handleQuickLogin('Citizen', { email: selectedCitizenEmail, password: 'password123' });
   };
 
   return (
@@ -118,18 +145,32 @@ const Login = () => {
         
         {isLoginView && (
           <div className="quick-login-section">
-            <p className="quick-login-title">For Demonstration (Pune Logins)</p>
-            <div className="quick-login-buttons">
-              <button onClick={() => handleQuickLogin('Citizen', { email: 'citizen.pune@test.com', password: 'password123' })}>Citizen 1 (Anjali)</button>
-              <button onClick={() => handleQuickLogin('Worker', { workerId: 'WKR-PUNE-01', password: 'password123' })}>Worker 1 (Suresh)</button>
-              <button onClick={() => handleQuickLogin('Officer', { city: 'Pune', password: 'password123' })}>Officer (Priya)</button>
-            </div>
+            <p className="quick-login-title">For Demonstration</p>
             
-            <p className="quick-login-title">For Demonstration (Other City Logins)</p>
-            <div className="quick-login-buttons">
-              <button onClick={() => handleQuickLogin('Citizen', { email: 'citizen.kop@test.com', password: 'password123' })}>Citizen 2 (Rohan)</button>
-              <button onClick={() => handleQuickLogin('Worker', { workerId: 'WKR-MUM-01', password: 'password123' })}>Worker 2 (Amit)</button>
-              <button onClick={() => handleQuickLogin('Officer', { city: 'Mumbai', password: 'password123' })}>Officer 2 (Vikram)</button>
+            <div className="citizen-login-dropdown">
+              <select value={selectedCitizenEmail} onChange={(e) => setSelectedCitizenEmail(e.target.value)}>
+                {citizens.map(citizen => (
+                  <option key={citizen.email} value={citizen.email}>
+                    {citizen.name}
+                  </option>
+                ))}
+              </select>
+              <button onClick={handleCitizenDropdownLogin}>Login as Citizen</button>
+            </div>
+
+            <div className="worker-login-dropdown" style={{marginTop: '10px'}}>
+              <select value={selectedWorkerId} onChange={(e) => setSelectedWorkerId(e.target.value)}>
+                {workers.map(worker => (
+                  <option key={worker.workerId} value={worker.workerId}>
+                    {worker.name} ({worker.workerId})
+                  </option>
+                ))}
+              </select>
+              <button onClick={handleWorkerDropdownLogin}>Login as Worker</button>
+            </div>
+
+            <div className="quick-login-buttons" style={{marginTop: '10px'}}>
+              <button onClick={() => handleQuickLogin('Officer', { city: 'Pune', password: 'password123' })}>Login as Priya (Officer)</button>
             </div>
           </div>
         )}

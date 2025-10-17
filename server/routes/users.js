@@ -2,19 +2,21 @@ import express from 'express';
 const router = express.Router();
 import { protect, authorize } from '../middleware/authMiddleware.js';
 
-// 1. Import the new 'updateWorkerLocation' function from your controller
+// Import all controller functions, including the new one for the login page
 import { 
   addWorker, 
   getWorkers, 
   getUserStats, 
   getLeaderboard,
-  updateWorkerLocation // The new function
+  updateWorkerLocation,
+  getAllWorkersForLogin,
+  getAllCitizensForLogin // <-- Add this
 } from '../controllers/userController.js';
 
 // Defines routes for adding and fetching workers
 router.route('/workers')
-  .get(protect, authorize('Officer'), getWorkers) // GET fetches the list
-  .post(protect, authorize('Officer'), addWorker); // POST adds a new worker
+  .get(protect, authorize('Officer'), getWorkers)
+  .post(protect, authorize('Officer'), addWorker);
 
 // Defines the route for fetching user profile stats
 router.route('/stats').get(protect, getUserStats);
@@ -22,11 +24,12 @@ router.route('/stats').get(protect, getUserStats);
 // Defines the route for fetching the community leaderboard
 router.route('/leaderboard').get(protect, getLeaderboard);
 
+// --- PUBLIC ROUTES FOR LOGIN PAGE DROPDOWNS ---
+router.route('/all-workers').get(getAllWorkersForLogin);
+router.route('/all-citizens').get(getAllCitizensForLogin); // <-- New route
 
-// --- THIS IS THE NEW ROUTE FOR LIVE TRACKING ---
-// It handles PUT requests from a worker's device to update their GPS coordinates.
+// --- ROUTE FOR LIVE WORKER TRACKING ---
 router.route('/live-location')
   .put(protect, authorize('Worker'), updateWorkerLocation);
-
 
 export default router;

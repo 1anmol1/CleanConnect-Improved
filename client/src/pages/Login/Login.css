@@ -129,7 +129,7 @@
   text-decoration: underline;
 }
 
-/* --- EDITED: Quick Login Styles --- */
+/* Quick Login Styles */
 .quick-login-section {
   padding: 20px 40px;
   background-color: var(--surface-color);
@@ -144,7 +144,6 @@
   margin-bottom: 15px;
 }
 
-/* Added margin between the two titles */
 .quick-login-title:not(:first-child) {
   margin-top: 20px;
 }
@@ -153,7 +152,7 @@
   display: flex;
   gap: 10px;
   justify-content: center;
-  flex-wrap: wrap; /* Allows buttons to wrap on smaller screens */
+  flex-wrap: wrap;
 }
 
 .quick-login-buttons button {
@@ -165,8 +164,8 @@
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
-  flex-grow: 1; /* Allows buttons to share space */
-  min-width: 120px; /* Prevents buttons from becoming too small */
+  flex-grow: 1;
+  min-width: 120px;
 }
 
 .quick-login-buttons button:hover {
@@ -174,6 +173,68 @@
   color: #fff;
   border-color: var(--primary-color);
 }
+
+/* COMBINED STYLES FOR CITIZEN & WORKER DROPDOWN LOGIN */
+.citizen-login-dropdown,
+.worker-login-dropdown {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.citizen-login-dropdown select,
+.worker-login-dropdown select {
+  flex-grow: 1;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background-color: #fff;
+}
+
+.citizen-login-dropdown button,
+.worker-login-dropdown button {
+  background-color: #fff;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.citizen-login-dropdown button:hover,
+.worker-login-dropdown button:hover {
+  background-color: var(--primary-color);
+  color: #fff;
+  border-color: var(--primary-color);
+}
+
+/* Public Reports Button Section */
+.public-reports-section {
+  padding: 20px 40px;
+  background-color: var(--background-color);
+  border-top: 1px solid var(--border-color);
+}
+
+.public-reports-section .btn-secondary {
+    background-color: var(--surface-color);
+    border-color: var(--border-color);
+    color: var(--text-color);
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.public-reports-section .btn-secondary:hover {
+    background-color: #e2e6ea;
+    border-color: #dae0e5;
+    box-shadow: none;
+    transform: none;
+}
+
 
 /* Error message */
 .error-message {
@@ -192,5 +253,8 @@
   .login-page-container { padding: 20px 10px; }
   .form-card { padding: 30px 25px; }
   .form-card h2 { font-size: 1.8rem; }
-  .quick-login-section { padding: 20px; }
+  .quick-login-section,
+  .public-reports-section { 
+    padding: 20px; 
+  }
 }

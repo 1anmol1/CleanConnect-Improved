@@ -6,12 +6,38 @@
 .worker-progress-page .page-header {
   text-align: center;
   margin-bottom: 2rem;
-  /* You can add a background image here if you have one */
+}
+
+.performance-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 992px) {
+  .performance-layout {
+    grid-template-columns: 3fr 2fr;
+  }
+}
+
+.chart-container {
+  padding: 1.5rem;
+}
+
+.chart-container h3 {
+  margin-bottom: 1.5rem;
+  text-align: center;
 }
 
 .progress-table-container {
   padding: 0;
   overflow-x: auto;
+}
+
+.progress-table-container h3 {
+  padding: 1.5rem;
+  margin: 0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .progress-table {
@@ -36,8 +62,18 @@
   color: var(--text-color-light);
 }
 
+.progress-table tbody tr {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
 .progress-table tbody tr:hover {
-  background-color: #f8f9fa;
+  background-color: #eef2f7;
+}
+
+.progress-table tbody tr.selected {
+  background-color: #e6f2ff;
+  font-weight: 600;
 }
 
 .resolution-time {
@@ -54,4 +90,28 @@
 .no-data-message svg {
   font-size: 2rem;
   margin-bottom: 1rem;
+}
+
+/* Custom Tooltip for Chart */
+.custom-tooltip {
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.custom-tooltip .label {
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.custom-tooltip .intro {
+  color: #8884d8;
+}
+
+.custom-tooltip .desc {
+  color: #666;
+  font-size: 0.9em;
 }

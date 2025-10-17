@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import useScrollToTop from '../../../hooks/useScrollToTop';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { FaBell, FaTrash, FaInfoCircle } from 'react-icons/fa';
+import { FaBell, FaTrash, FaInfoCircle, FaThumbsUp, FaThumbsDown } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth.js';
 import Loader from '../../../components/Loader/Loader.jsx';
@@ -15,27 +15,31 @@ const Notifications = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
+  const fetchNotifications = async () => {
+    // Set loading to true only if it's the initial fetch
+    if (loading) {
+        setLoading(true);
+    }
+    try {
+      const token = localStorage.getItem('token');
+      const { data } = await axios.get('/api/notifications/my-notifications', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setNotifications(data.data);
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Could not load notifications.");
+      console.error("Failed to fetch notifications", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const { data } = await axios.get('/api/notifications/my-notifications', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setNotifications(data.data);
-      } catch (error) {
-        // THE FIX: Provide a much more specific error message.
-        // This will now show a toast notification if the API call fails for any reason.
-        toast.error(error.response?.data?.error || "Could not load notifications.");
-        console.error("Failed to fetch notifications", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (user) fetchNotifications();
+    if (user) {
+      fetchNotifications();
+    }
   }, [user]);
 
-  // The rest of your component (handleDelete, parseMessage, JSX) remains the same.
   const handleDeleteNotification = async (notificationId) => {
     const originalNotifications = [...notifications];
     setNotifications(prev => prev.filter(n => n._id !== notificationId));
@@ -46,6 +50,22 @@ const Notifications = () => {
     } catch (error) {
       toast.error("Failed to delete. Please try again.");
       setNotifications(originalNotifications);
+    }
+  };
+
+  const handleVote = async (complaintId, voteType) => {
+    try {
+        const token = localStorage.getItem('token');
+        await axios.put(`/api/complaints/${complaintId}/vote`, { voteType }, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.success('Thank you for your vote!');
+        // Mark this notification as "voted" locally to disable buttons
+        setNotifications(prev => prev.map(n => 
+            n.relatedComplaint === complaintId ? { ...n, voted: true } : n
+        ));
+    } catch (error) {
+        toast.error(error.response?.data?.error || "Failed to cast vote.");
     }
   };
 
@@ -64,7 +84,7 @@ const Notifications = () => {
     <div className="notifications-page container fade-in">
       <header className="page-header" style={{ backgroundImage: `url(${dashboardHeroImage})` }}>
         <h1>Notifications</h1>
-        <p>Stay updated with campaign news and alerts about your reports.</p>
+        <p>Stay updated and vote on new issues in your community.</p>
       </header>
       <div className="notifications-list">
         {notifications.length === 0 ? (
@@ -91,6 +111,21 @@ const Notifications = () => {
                     </div>
                   )}
                   <small>{new Date(notif.createdAt).toLocaleString()}</small>
+
+                  {/* NEW: Voting Section */}
+                  {notif.type === 'Broadcast' && notif.relatedComplaint && (
+                    <div className="vote-section">
+                        <span>Does this issue affect you?</span>
+                        <div className="vote-buttons">
+                            <button onClick={() => handleVote(notif.relatedComplaint, 'like')} disabled={notif.voted}>
+                                <FaThumbsUp /> Yes
+                            </button>
+                            <button onClick={() => handleVote(notif.relatedComplaint, 'dislike')} disabled={notif.voted}>
+                                <FaThumbsDown /> No
+                            </button>
+                        </div>
+                    </div>
+                  )}
                 </div>
                 <button className="delete-notification-btn" onClick={() => handleDeleteNotification(notif._id)} title="Delete Notification"><FaTrash /></button>
               </div>

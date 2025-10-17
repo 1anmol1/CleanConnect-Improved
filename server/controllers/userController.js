@@ -94,7 +94,27 @@ export const getLeaderboard = asyncHandler(async (req, res) => {
 });
 
 
-// --- THIS IS THE NEW FUNCTION FOR LIVE TRACKING ---
+/**
+ * @desc    Get all workers for public login dropdown
+ * @route   GET /api/users/all-workers
+ * @access  Public
+ */
+export const getAllWorkersForLogin = asyncHandler(async (req, res) => {
+  const workers = await User.find({ role: 'Worker' }).select('name workerId');
+  res.json({ success: true, data: workers });
+});
+
+/**
+ * @desc    Get all citizens for public login dropdown
+ * @route   GET /api/users/all-citizens
+ * @access  Public
+ */
+export const getAllCitizensForLogin = asyncHandler(async (req, res) => {
+  const citizens = await User.find({ role: 'Citizen' }).select('name email');
+  res.json({ success: true, data: citizens });
+});
+
+
 /**
  * @desc    Update the logged-in worker's live location
  * @route   PUT /api/users/live-location
@@ -108,14 +128,12 @@ export const updateWorkerLocation = asyncHandler(async (req, res) => {
         throw new Error('Latitude and Longitude are required.');
     }
 
-    // Find the worker by their ID (from the verified token)
     const worker = await User.findById(req.user._id);
 
     if (worker) {
-        // Update the liveLocation field using the GeoJSON Point format
         worker.liveLocation = {
             type: 'Point',
-            coordinates: [lng, lat] // IMPORTANT: GeoJSON is [Longitude, Latitude]
+            coordinates: [lng, lat]
         };
         await worker.save();
         res.status(200).json({ success: true, message: 'Location updated successfully.' });

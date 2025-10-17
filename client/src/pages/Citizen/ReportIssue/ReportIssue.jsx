@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useSearchParams, Link, useLocation } from 'react-router-dom'; // 1. Import useLocation
+import { useSearchParams, Link, useLocation } from 'react-router-dom';
 import useScrollToTop from '../../../hooks/useScrollToTop';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import ReCAPTCHA from 'react-google-recaptcha';
-import { FaPaperPlane } from 'react-icons/fa';
+import { FaPaperPlane, FaCamera, FaImage } from 'react-icons/fa';
 import dashboardHeroImage from '/src/assets/issue.png';
 import './ReportIssue.css';
 import QrReportFlow from '../../../components/Report/QrReportFlow';
@@ -13,9 +13,8 @@ const ReportIssue = () => {
   useScrollToTop();
   const [searchParams] = useSearchParams();
   const qrBinId = searchParams.get('binId');
-  const location = useLocation(); // 2. Initialize the hook to get navigation state
+  const location = useLocation();
 
-  // If a binId exists in the URL, render the QR code workflow component.
   if (qrBinId) {
     return <QrReportFlow qrBinId={qrBinId} />;
   }
@@ -24,43 +23,57 @@ const ReportIssue = () => {
   const [issueType, setIssueType] = useState('');
   const [formData, setFormData] = useState({ binId: '', description: '' });
   const [photo, setPhoto] = useState(null);
-  const [binSuggestions, setBinSuggestions] = useState([]);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [allBins, setAllBins] = useState([]); // State to hold all bins for the dropdown
   const [loading, setLoading] = useState(false);
   
   const [recaptchaToken, setRecaptchaToken] = useState(null);
   const recaptchaRef = useRef();
+  
+  const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
 
-  // 3. THE FIX: This new useEffect runs once when the page loads.
-  // It checks if the AI chatbot sent any data in the navigation state.
+  // --- DATA FETCHING & AI PRE-FILL ---
   useEffect(() => {
-    // location.state will contain the { issueType, description } object from the AI
+    // Fetch all bins to populate the dropdown menu
+    const fetchBins = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const { data } = await axios.get('/api/bins', { headers: { Authorization: `Bearer ${token}` } });
+        if (data.success && Array.isArray(data.data.bins)) {
+          setAllBins(data.data.bins);
+        }
+      } catch (error) {
+        console.error("Failed to fetch bin list for dropdown", error);
+        toast.error("Could not load bin list.");
+      }
+    };
+    fetchBins();
+
+    // Handle pre-filling data if sent from the AI chatbot
     if (location.state) {
-      // Update the form's state with the data from the AI
       setIssueType(location.state.issueType || '');
       setFormData(prevData => ({
         ...prevData,
-        description: location.state.description || ''
+        description: location.state.description || '',
+        binId: location.state.binId || ''
       }));
-      // Let the user know the form was pre-filled
       toast.info("AI has pre-filled the form based on your conversation.");
     }
-  }, [location.state]); // This dependency ensures the effect runs only when navigation state is present
+  }, [location.state]);
 
   const handleIssueChange = (e) => setIssueType(e.target.value);
   const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  const handleFileChange = (e) => setPhoto(e.target.files[0]);
 
-  const handleBinIdChange = async (e) => {
-    const term = e.target.value;
-    setFormData(prev => ({ ...prev, binId: term }));
-    if (term.length > 2) {
-      try {
-        const token = localStorage.getItem('token');
-        const { data } = await axios.get(`/api/bins/search?term=${term}`, { headers: { Authorization: `Bearer ${token}` } });
-        setBinSuggestions(data.data.map(bin => bin.binId));
-      } catch (error) { console.error("Bin search failed", error); }
-    } else {
-      setBinSuggestions([]);
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setPhoto(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -70,7 +83,7 @@ const ReportIssue = () => {
         toast.error("Please verify that you are not a robot.");
         return;
     }
-    if (!photo) { toast.error("Please upload a photo."); return; }
+    if (!photo) { toast.error("Please provide a photo."); return; }
     setLoading(true);
 
     const submissionData = new FormData();
@@ -86,10 +99,13 @@ const ReportIssue = () => {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` }
       });
       toast.success(data.message || 'Report submitted successfully!');
+      
+      // Reset form state after successful submission
       e.target.reset();
       setIssueType('');
       setFormData({ binId: '', description: '' });
       setPhoto(null);
+      setPhotoPreview(null);
       recaptchaRef.current.reset();
       setRecaptchaToken(null);
     } catch (error) {
@@ -123,20 +139,46 @@ const ReportIssue = () => {
               <option value="Other">Other</option>
             </select>
           </div>
+          
+          {/* --- UPDATED BIN ID DROPDOWN --- */}
           {(issueType === 'Overflowing Bin' || issueType === 'Damaged Bin') && (
             <div className="form-group">
               <label htmlFor="binId">Bin ID (if known)</label>
-              <input type="text" id="binId" name="binId" value={formData.binId} onChange={handleBinIdChange} placeholder="Type to search..." list="bin-suggestions" required />
-              <datalist id="bin-suggestions">{binSuggestions.map(id => <option key={id} value={id} />)}</datalist>
+              <select id="binId" name="binId" value={formData.binId} onChange={handleChange} required>
+                <option value="">-- Select a Bin ID --</option>
+                {allBins.map(bin => (
+                  <option key={bin._id} value={bin.binId}>
+                    {bin.binId} ({bin.area})
+                  </option>
+                ))}
+              </select>
             </div>
           )}
+          {/* --- END OF UPDATE --- */}
+
           <div className="form-group">
             <label htmlFor="description">Description</label>
             <textarea id="description" name="description" value={formData.description} onChange={handleChange} rows="4" required></textarea>
           </div>
+          
           <div className="form-group">
-            <label htmlFor="photo">Upload a Photo (Required)</label>
-            <input type="file" id="photo" name="photo" onChange={handleFileChange} accept="image/*" required />
+            <label>Attach a Photo (Required)</label>
+            <div className="file-input-buttons">
+              <button type="button" className="btn-file-input" onClick={() => fileInputRef.current.click()}>
+                <FaImage /> Choose from Library
+              </button>
+              <button type="button" className="btn-file-input" onClick={() => cameraInputRef.current.click()}>
+                <FaCamera /> Take a Photo
+              </button>
+            </div>
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" style={{ display: 'none' }} />
+            <input type="file" ref={cameraInputRef} onChange={handleFileChange} accept="image/*" capture="environment" style={{ display: 'none' }} />
+            
+            {photoPreview && (
+              <div className="image-preview-container">
+                <img src={photoPreview} alt="Selected preview" className="image-preview" />
+              </div>
+            )}
           </div>
 
           <div className="form-group recaptcha-container">
@@ -147,7 +189,7 @@ const ReportIssue = () => {
             />
           </div>
 
-          <button type="submit" className="btn btn-primary btn-submit" disabled={loading}>
+          <button type="submit" className="btn btn-primary btn-submit" disabled={loading || !photo}>
             {loading ? 'Submitting...' : <><FaPaperPlane /> Submit Report</>}
           </button>
         </form>

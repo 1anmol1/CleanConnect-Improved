@@ -20,6 +20,12 @@ const complaintSchema = new mongoose.Schema(
       enum: ['Pending', 'Assigned', 'Resolved', 'Verified', 'Reopened', 'FeedbackProvided', 'Closed'],
       default: 'Pending',
     },
+    priority: {
+      type: String,
+      enum: ['Low', 'Medium', 'High', 'Emergency'],
+      default: 'Low',
+      index: true, // Index for faster sorting
+    },
     reportedBy: {
       type: mongoose.Schema.ObjectId,
       ref: 'User',
@@ -53,11 +59,22 @@ const complaintSchema = new mongoose.Schema(
     notifiedAt: {
         type: Date,
     },
-    // For tracking multiple reports on the same issue
     reportCount: {
         type: Number,
         default: 1,
     },
+    likes: {
+      type: Number,
+      default: 0
+    },
+    dislikes: {
+      type: Number,
+      default: 0
+    },
+    votedBy: [{
+      type: mongoose.Schema.ObjectId,
+      ref: 'User'
+    }],
     feedbacks: [
       {
         user: { type: mongoose.Schema.ObjectId, ref: 'User' },

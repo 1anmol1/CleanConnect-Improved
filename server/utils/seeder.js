@@ -49,10 +49,22 @@ const importData = async () => {
 
     // Step 3: Create the user data with securely hashed passwords.
     const usersToCreate = [
+      // Existing Citizens
       { name: 'Anjali', email: 'citizen.pune@test.com', password: await bcrypt.hash('password123', 10), role: 'Citizen', city: 'Pune', area: 'Kothrud', addressLine: '123 Kothrud Lane', location: 'Kothrud, Pune' },
       { name: 'Rohan', email: 'citizen.kop@test.com', password: await bcrypt.hash('password123', 10), role: 'Citizen', city: 'Kolhapur', area: 'Shahupuri', addressLine: '456 Shahupuri Road', location: 'Shahupuri, Kolhapur' },
+      
+      // New Citizens for Dropdown
+      { name: 'Aditya', email: 'aditya.pune@test.com', password: await bcrypt.hash('password123', 10), role: 'Citizen', city: 'Pune', area: 'Aundh', addressLine: '101 Aundh High Street', location: 'Aundh, Pune' },
+      { name: 'Yogesh', email: 'yogesh.mumbai@test.com', password: await bcrypt.hash('password123', 10), role: 'Citizen', city: 'Mumbai', area: 'Andheri', addressLine: '202 Andheri West', location: 'Andheri, Mumbai' },
+      { name: 'Shravani', email: 'shravani.pune@test.com', password: await bcrypt.hash('password123', 10), role: 'Citizen', city: 'Pune', area: 'Viman Nagar', addressLine: '303 Viman Nagar Road', location: 'Viman Nagar, Pune' },
+      { name: 'Raj', email: 'raj.kop@test.com', password: await bcrypt.hash('password123', 10), role: 'Citizen', city: 'Kolhapur', area: 'Rajarampuri', addressLine: '404 Rajarampuri Lane', location: 'Rajarampuri, Kolhapur' },
+
+      // Workers
       { name: 'Suresh', email: 'worker.pune@test.com', workerId: 'WKR-PUNE-01', password: await bcrypt.hash('password123', 10), role: 'Worker', city: 'Pune', area: 'Kothrud', liveLocation: { type: 'Point', coordinates: [73.79, 18.515]}},
+      { name: 'Rakesh', email: 'rakesh.pune@test.com', workerId: 'WKR-PUNE-02', password: await bcrypt.hash('password123', 10), role: 'Worker', city: 'Pune', area: 'Aundh' },
       { name: 'Amit', email: 'worker.mumbai@test.com', workerId: 'WKR-MUM-01', password: await bcrypt.hash('password123', 10), role: 'Worker', city: 'Mumbai', area: 'Andheri', liveLocation: { type: 'Point', coordinates: [72.86, 19.11]}},
+      
+      // Officers
       { name: 'Priya', email: 'officer.pune@test.com', password: await bcrypt.hash('password123', 10), role: 'Officer', city: 'Pune' },
       { name: 'Vikram', email: 'officer.mumbai@test.com', password: await bcrypt.hash('password123', 10), role: 'Officer', city: 'Mumbai' },
     ];
