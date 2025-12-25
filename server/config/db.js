@@ -7,6 +7,7 @@ const connectDB = async () => {
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error(`Error connecting to MongoDB: ${error.message}`);
+    console.error('ACTION REQUIRED: Check your MongoDB Atlas IP Whitelist settings.');
     process.exit(1);
   }
 };

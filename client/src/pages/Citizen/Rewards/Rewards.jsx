@@ -22,8 +22,8 @@ const Rewards = () => {
       try {
         const token = localStorage.getItem('token');
         const [leaderboardRes, statsRes] = await Promise.all([
-          axios.get('/api/users/leaderboard', { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get('/api/users/stats', { headers: { Authorization: `Bearer ${token}` } })
+          axios.get('/users/leaderboard', { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get('/users/stats', { headers: { Authorization: `Bearer ${token}` } })
         ]);
         setLeaderboard(leaderboardRes.data.data);
         setUserStats(statsRes.data.data);

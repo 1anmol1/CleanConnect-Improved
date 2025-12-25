@@ -182,7 +182,7 @@ const handleSendMessage = async (textToSend, isFromVoice = false) => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const { data } = await axios.post('/api/ai/chat', { message: textToSend }, {
+      const { data } = await axios.post('/ai/chat', { message: textToSend }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMessages(prev => [...prev, { sender: 'ai', text: data.reply }]);

@@ -44,7 +44,7 @@ const CreateNotification = () => {
       if (user?.city && (formData.target === 'AreaCitizens' || formData.target === 'AreaWorkers')) {
         try {
           const token = localStorage.getItem('token');
-          const { data } = await axios.get(`/api/areas/${user.city}`, {
+          const { data } = await axios.get(`/areas/${user.city}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           setAreas(data.data || []);
@@ -101,7 +101,7 @@ const CreateNotification = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const { data } = await axios.post('/api/notifications', payload, {
+      const { data } = await axios.post('/notifications', payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success(data.message || 'Notification sent successfully!');

@@ -32,7 +32,7 @@ export const getAllBins = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error('User city not found. Cannot fetch data.');
   }
-  
+
   const cityQuery = { city: req.user.city };
 
   // 2. Perform two database queries in parallel for maximum efficiency
@@ -50,12 +50,12 @@ export const getAllBins = asyncHandler(async (req, res) => {
   ]);
 
   // 3. Send back a combined payload with both bins and vehicles
-  res.status(200).json({ 
-    success: true, 
+  res.status(200).json({
+    success: true,
     data: {
       bins: bins,
       vehicles: vehicles
-    } 
+    }
   });
 });
 
@@ -65,12 +65,12 @@ export const getAllBins = asyncHandler(async (req, res) => {
  * @access  Private
  */
 export const searchBins = asyncHandler(async (req, res) => {
-    const { term } = req.query;
-    const bins = await Bin.find({ 
-        binId: { $regex: term, $options: 'i' },
-        city: req.user.city
-    }).limit(10);
-    res.json({ success: true, data: bins });
+  const { term } = req.query;
+  const bins = await Bin.find({
+    binId: { $regex: term, $options: 'i' },
+    city: req.user.city
+  }).limit(10);
+  res.json({ success: true, data: bins });
 });
 
 /**
@@ -86,14 +86,14 @@ export const updateBinFillLevel = asyncHandler(async (req, res) => {
 
   if (bin) {
     bin.fillLevel = fillLevel;
-    
+
     if (fillLevel >= 95) bin.status = 'Overflow';
     else if (fillLevel >= 90) bin.status = 'Full';
     else if (fillLevel >= 70) bin.status = 'Half-Full';
     else bin.status = 'Empty';
-    
+
     const updatedBin = await bin.save();
-    
+
     res.status(200).json({
       success: true,
       message: `Bin ${updatedBin.binId} updated successfully to ${updatedBin.fillLevel}%`,
@@ -140,11 +140,16 @@ export const getChildBins = asyncHandler(async (req, res) => {
  * @access  Private (Volunteer, Officer)
  */
 export const updateManualStatus = asyncHandler(async (req, res) => {
-  const { manualStatus } = req.body;
+  const { manualFillLevel } = req.body;
   const bin = await Bin.findById(req.params.id);
 
   if (bin && !bin.isSmartBin) {
-    bin.manualStatus = manualStatus;
+    bin.manualFillLevel = manualFillLevel;
+    // Update status based on fill level
+    if (manualFillLevel >= 95) bin.status = 'Overflow';
+    else if (manualFillLevel >= 90) bin.status = 'Full';
+    else if (manualFillLevel >= 70) bin.status = 'Half-Full';
+    else bin.status = 'Empty';
     bin.lastManualUpdate = Date.now();
     await bin.save();
     res.json({ success: true, message: 'Bin status updated manually.' });

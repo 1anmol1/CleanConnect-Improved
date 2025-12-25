@@ -34,8 +34,8 @@ const ComplaintManagement = () => {
         try {
             const token = localStorage.getItem('token');
             const [complaintsRes, workersRes] = await Promise.all([
-                axios.get('/api/complaints', { headers: { Authorization: `Bearer ${token}` } }),
-                axios.get('/api/users/workers', { headers: { Authorization: `Bearer ${token}` } })
+                axios.get('/complaints', { headers: { Authorization: `Bearer ${token}` } }),
+                axios.get('/users/workers', { headers: { Authorization: `Bearer ${token}` } })
             ]);
             setComplaints(complaintsRes.data.data);
             setWorkers(workersRes.data.data);
@@ -61,7 +61,7 @@ const ComplaintManagement = () => {
         }
         try {
             const token = localStorage.getItem('token');
-            await axios.put(`/api/complaints/${complaintId}/assign`, { workerId }, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.put(`/complaints/${complaintId}/assign`, { workerId }, { headers: { Authorization: `Bearer ${token}` } });
             toast.success('Complaint assigned successfully!');
             fetchData(); // Refresh data to show the update
         } catch (error) { toast.error('Failed to assign complaint.'); }
@@ -70,7 +70,7 @@ const ComplaintManagement = () => {
     const handleVerification = async (complaintId, status) => {
         try {
             const token = localStorage.getItem('token');
-            const { data } = await axios.put(`/api/complaints/${complaintId}/verify`, { status }, { 
+            const { data } = await axios.put(`/complaints/${complaintId}/verify`, { status }, { 
                 headers: { Authorization: `Bearer ${token}` } 
             });
             toast.success(data.message);
@@ -84,7 +84,7 @@ const ComplaintManagement = () => {
     const handleClose = async (complaintId) => {
         try {
             const token = localStorage.getItem('token');
-            await axios.put(`/api/complaints/${complaintId}/close`, {}, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.put(`/complaints/${complaintId}/close`, {}, { headers: { Authorization: `Bearer ${token}` } });
             toast.success('Complaint finalized. CleanCoins awarded to the reporter(s).');
             fetchData();
         } catch (error) { toast.error('Failed to close complaint.'); }
@@ -94,7 +94,7 @@ const ComplaintManagement = () => {
         try {
             const token = localStorage.getItem('token');
             // Backend uses the 'assign' route for reassignments as well
-            await axios.put(`/api/complaints/${selectedTask._id}/assign`, { workerId }, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.put(`/complaints/${selectedTask._id}/assign`, { workerId }, { headers: { Authorization: `Bearer ${token}` } });
             toast.success('Complaint has been re-assigned.');
             setIsReassignModalOpen(false);
             fetchData();
@@ -126,7 +126,7 @@ const ComplaintManagement = () => {
         if (window.confirm(`Are you sure you want to delete ${selectedComplaints.length} complaint(s)? This action cannot be undone.`)) {
             try {
                 const token = localStorage.getItem('token');
-                await axios.post('/api/complaints/bulk-delete', { ids: selectedComplaints }, { headers: { Authorization: `Bearer ${token}` } });
+                await axios.post('/complaints/bulk-delete', { ids: selectedComplaints }, { headers: { Authorization: `Bearer ${token}` } });
                 toast.success(`${selectedComplaints.length} complaints deleted successfully.`);
                 setSelectedComplaints([]);
                 fetchData();

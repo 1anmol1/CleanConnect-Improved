@@ -24,7 +24,7 @@ const ComplaintHistory = () => {
 
             try {
                 console.log("Fetching complaint history with token...");
-                const { data } = await axios.get('/api/complaints/my-history', { 
+                const { data } = await axios.get('/complaints/my-history', { 
                     headers: { Authorization: `Bearer ${token}` } 
                 });
                 
@@ -67,10 +67,10 @@ const ComplaintHistory = () => {
         }
         try {
             const token = localStorage.getItem('token');
-            await axios.put(`/api/complaints/${id}/feedback`, payload, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.put(`/complaints/${id}/feedback`, payload, { headers: { Authorization: `Bearer ${token}` } });
             toast.success(`Thank you for your feedback!`);
             // Re-fetch history to show updated state
-            const { data } = await axios.get('/api/complaints/my-history', { headers: { Authorization: `Bearer ${token}` } });
+            const { data } = await axios.get('/complaints/my-history', { headers: { Authorization: `Bearer ${token}` } });
             setComplaints(data.data || []);
         } catch (error) {
             toast.error("Failed to submit feedback.");

@@ -45,7 +45,7 @@ const WorkerProgress = () => {
     const fetchPerformance = async () => {
       try {
         const token = localStorage.getItem('token');
-        const { data } = await axios.get('/api/complaints/progress', {
+        const { data } = await axios.get('/complaints/progress', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setPerformanceData(data.data);

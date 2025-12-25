@@ -14,12 +14,18 @@ import userRoutes from './routes/users.js';
 import areaRoutes from './routes/areas.js';
 import notificationRoutes from './routes/notifications.js';
 import attendanceRoutes from './routes/attendance.js';
+import routeRoutes from './routes/routes.js';
 
 connectDB();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Basic Route for Health Check
+app.get('/', (req, res) => {
+  res.send('CleanConnect API is running...');
+});
 
 // --- THE FIX IS HERE ---
 // This is a more robust way to define paths in an ES Module environment.
@@ -41,6 +47,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/areas', areaRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/routes', routeRoutes);
 
 // Server Startup
 const PORT = process.env.PORT || 5000;

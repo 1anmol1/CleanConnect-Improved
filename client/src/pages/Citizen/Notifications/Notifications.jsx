@@ -18,7 +18,7 @@ const Notifications = () => {
   const fetchNotifications = async () => {
     try {
       const token = localStorage.getItem('token');
-      const { data } = await axios.get('/api/notifications/my-notifications', {
+      const { data } = await axios.get('/notifications/my-notifications', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setNotifications(data.data);
@@ -41,7 +41,7 @@ const Notifications = () => {
     setNotifications(prev => prev.filter(n => n._id !== notificationId));
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`/api/notifications/${notificationId}`, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.delete(`/notifications/${notificationId}`, { headers: { Authorization: `Bearer ${token}` } });
       toast.success("Notification deleted.");
     } catch (error) {
       toast.error("Failed to delete. Please try again.");
@@ -52,7 +52,7 @@ const Notifications = () => {
   const handleVote = async (complaintId, voteType) => {
     try {
         const token = localStorage.getItem('token');
-        await axios.put(`/api/complaints/${complaintId}/vote`, { voteType }, {
+        await axios.put(`/complaints/${complaintId}/vote`, { voteType }, {
             headers: { Authorization: `Bearer ${token}` }
         });
         toast.success('Thank you for your vote!');

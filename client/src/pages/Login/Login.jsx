@@ -29,9 +29,9 @@ const Login = () => {
     const fetchInitialData = async () => {
       try {
         const [citiesRes, workersRes, citizensRes] = await Promise.all([
-          axios.get('/api/areas/cities'),
-          axios.get('/api/users/all-workers'),
-          axios.get('/api/users/all-citizens') // <-- NEW: Fetch all citizens
+          axios.get('/areas/cities'),
+          axios.get('/users/all-workers'),
+          axios.get('/users/all-citizens') // <-- NEW: Fetch all citizens
         ]);
         setCities(citiesRes.data.data);
         setWorkers(workersRes.data.data);
@@ -57,7 +57,7 @@ const Login = () => {
     setFormData({ ...formData, location: term });
     if (term.length >= 3) {
       try {
-        const { data } = await axios.get(`/api/areas/search?term=${term}`);
+        const { data } = await axios.get(`/areas/search?term=${term}`);
         if (data.success) setLocationSuggestions(data.data);
       } catch (error) { setLocationSuggestions([]); }
     } else {
@@ -67,7 +67,7 @@ const Login = () => {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    const url = isLoginView ? '/api/auth/login' : '/api/auth/register';
+    const url = isLoginView ? '/auth/login' : '/auth/register';
     
     let payload = { role: activeRole };
     if (isLoginView) {

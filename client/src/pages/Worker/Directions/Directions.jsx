@@ -67,7 +67,7 @@ const Directions = () => {
     const fetchInitialData = async () => {
         try {
             const token = localStorage.getItem('token');
-            const { data } = await axios.get('/api/bins', { headers: { Authorization: `Bearer ${token}` } });
+            const { data } = await axios.get('/bins', { headers: { Authorization: `Bearer ${token}` } });
             const realBins = data.data.bins || [];
             const smartBins = realBins.filter(bin => bin.isSmartBin);
             setCurrentBins(smartBins);

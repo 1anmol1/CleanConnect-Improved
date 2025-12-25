@@ -27,7 +27,7 @@ const WorkerManagement = () => {
   const fetchWorkers = async () => {
     try {
       const token = localStorage.getItem('token');
-      const { data } = await axios.get('/api/users/workers', {
+      const { data } = await axios.get('/users/workers', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setWorkers(data.data);
@@ -64,7 +64,7 @@ const WorkerManagement = () => {
   const handleAddWorker = async (workerData) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post('/api/users/workers', workerData, {
+      await axios.post('/users/workers', workerData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('New worker added successfully!');

@@ -45,7 +45,7 @@ export const addWorker = asyncHandler(async (req, res) => {
  */
 export const getWorkers = asyncHandler(async (req, res) => {
   const workers = await User.find({ role: 'Worker', city: req.user.city })
-    .select('name area workerId lastCheckIn');
+    .select('name area workerId attendanceStatus');
     
   res.status(200).json({ success: true, data: workers });
 });

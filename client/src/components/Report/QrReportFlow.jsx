@@ -29,7 +29,7 @@ const QrReportFlow = ({ qrBinId }) => {
     const fetchScannedBin = async () => {
       try {
         const token = localStorage.getItem('token');
-        const { data } = await axios.get(`/api/bins/by-id/${qrBinId}`, {
+        const { data } = await axios.get(`/bins/by-id/${qrBinId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setScannedBinData(data.data);
@@ -76,7 +76,7 @@ const QrReportFlow = ({ qrBinId }) => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post('/api/complaints', submissionData, {
+      await axios.post('/complaints', submissionData, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` }
       });
       

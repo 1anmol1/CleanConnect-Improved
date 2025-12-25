@@ -17,7 +17,7 @@ const OfficerProfile = () => {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem('token');
-        const { data } = await axios.get('/api/users/stats', {
+        const { data } = await axios.get('/users/stats', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setStats(data.data);

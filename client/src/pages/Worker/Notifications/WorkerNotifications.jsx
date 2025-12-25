@@ -18,7 +18,7 @@ const WorkerNotifications = () => {
     const fetchNotifications = async () => {
       try {
         const token = localStorage.getItem('token');
-        const { data } = await axios.get('/api/notifications/my-notifications', {
+        const { data } = await axios.get('/notifications/my-notifications', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setNotifications(data.data);
@@ -41,7 +41,7 @@ const WorkerNotifications = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`/api/notifications/${notificationId}`, {
+      await axios.delete(`/notifications/${notificationId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Notification deleted.");

@@ -18,7 +18,7 @@ const Resolutions = () => {
   const fetchResolutions = async () => {
     try {
       const token = localStorage.getItem('token');
-      const { data } = await axios.get('/api/complaints/my-resolutions', {
+      const { data } = await axios.get('/complaints/my-resolutions', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setTasks(data.data);
@@ -43,7 +43,7 @@ const Resolutions = () => {
   const handleResolve = async (taskId, formData) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`/api/complaints/${taskId}/resolve`, formData, {
+      await axios.put(`/complaints/${taskId}/resolve`, formData, {
         headers: { 
             Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data',

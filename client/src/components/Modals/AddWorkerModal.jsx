@@ -21,7 +21,7 @@ const AddWorkerModal = ({ isOpen, onClose, onAddWorker }) => {
         try {
           const token = localStorage.getItem('token');
           // Assuming the API returns an array of area objects: [{ name: 'Area1' }, { name: 'Area2' }]
-          const { data } = await axios.get(`/api/areas/${user.city}`, {
+          const { data } = await axios.get(`/areas/${user.city}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           setAreas(data.data || []);

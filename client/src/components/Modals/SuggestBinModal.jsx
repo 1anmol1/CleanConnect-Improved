@@ -13,7 +13,7 @@ const SuggestBinModal = ({ isOpen, onClose, fullBinLocation }) => {
         setLoading(true);
         try {
           // Call the new backend endpoint with the coordinates of the full bin
-          const { data } = await axios.get(`/api/bins/nearest-empty`, {
+          const { data } = await axios.get(`/bins/nearest-empty`, {
             params: {
               lng: fullBinLocation.coordinates[0],
               lat: fullBinLocation.coordinates[1],

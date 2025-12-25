@@ -53,7 +53,7 @@ const NewComplaint = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post('/api/complaints', submissionData, {
+      await axios.post('/complaints', submissionData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${token}`

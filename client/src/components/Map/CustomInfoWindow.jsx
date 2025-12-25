@@ -24,7 +24,7 @@ const CustomInfoWindow = ({ bin, onClose }) => {
         try {
           const token = localStorage.getItem('token');
           // Make an API call to the backend to get the children for this parent bin.
-          const { data } = await axios.get(`/api/bins/${bin._id}/children`, {
+          const { data } = await axios.get(`/bins/${bin._id}/children`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           setChildBins(data.data || []);

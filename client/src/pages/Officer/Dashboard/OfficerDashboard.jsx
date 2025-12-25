@@ -34,7 +34,7 @@ const OfficerDashboard = () => {
     const fetchDataAndAnimate = async () => {
       try {
         const token = localStorage.getItem('token');
-        const { data } = await axios.get('/api/bins', {
+        const { data } = await axios.get('/bins', {
           headers: { Authorization: `Bearer ${token}` },
         });
 

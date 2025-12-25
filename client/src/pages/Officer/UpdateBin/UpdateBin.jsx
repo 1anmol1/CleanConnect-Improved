@@ -44,7 +44,7 @@ const UpdateBin = () => {
         setLoadingAreas(true);
         try {
           const token = localStorage.getItem('token');
-          const { data } = await axios.get(`/api/areas/${user.city}`, {
+          const { data } = await axios.get(`/areas/${user.city}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           setAreas(data.data || []);
@@ -63,7 +63,7 @@ const UpdateBin = () => {
       if (isMapVisible && user?.city) {
         try {
           const token = localStorage.getItem('token');
-          const { data } = await axios.get('/api/bins', {
+          const { data } = await axios.get('/bins', {
             headers: { Authorization: `Bearer ${token}` }
           });
           // --- THE FIX FOR THE CRASH IS HERE ---
@@ -104,7 +104,7 @@ const UpdateBin = () => {
         };
       
       const token = localStorage.getItem('token');
-      await axios.post('/api/bins', payload, {
+      await axios.post('/bins', payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('New bin added to the network!');

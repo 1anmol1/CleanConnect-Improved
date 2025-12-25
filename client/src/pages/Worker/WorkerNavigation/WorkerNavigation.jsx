@@ -35,7 +35,7 @@ const WorkerNavigation = () => {
       const { latitude, longitude } = position.coords;
       const token = localStorage.getItem('token');
       
-      axios.put('/api/users/live-location', {
+      axios.put('/users/live-location', {
         lat: latitude,
         lng: longitude
       }, {
