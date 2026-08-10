@@ -146,35 +146,6 @@ const Login = () => {
           </div>
         )}
 
-        <div className="form-card" style={{marginTop: '1rem'}}>
-          <div className="role-selector">
-            <button onClick={() => setRole('Citizen')} className={activeRole === 'Citizen' ? 'active' : ''}>Citizen</button>
-            <button onClick={() => setRole('Worker')} className={activeRole === 'Worker' ? 'active' : ''}>Worker</button>
-            <button onClick={() => setRole('Officer')} className={activeRole === 'Officer' ? 'active' : ''}>Officer</button>
-          </div>
-
-          <h2>{isLoginView ? 'Welcome Back' : 'Create Citizen Account'}</h2>
-          <p>{isLoginView ? 'Log in to access your portal.' : 'Sign up to report issues and earn rewards.'}</p>
-          
-          <form onSubmit={onSubmit} ref={formRef}>
-            {!isLoginView && <div className="form-group"><label>Full Name</label><input type="text" name="name" value={formData.name} placeholder="e.g., Anmol Patil" onChange={onChange} required /></div>}
-            {(activeRole === 'Citizen') && <div className="form-group"><label>Email Address</label><input type="email" name="email" value={formData.email} placeholder="e.g., user@example.com" onChange={onChange} required /></div>}
-            {(activeRole === 'Worker' && isLoginView) && <div className="form-group"><label>Worker ID</label><input type="text" name="workerId" value={formData.workerId} placeholder="e.g., WKR-PUNE-01" onChange={onChange} required /></div>}
-            {(activeRole === 'Officer' && isLoginView) && <div className="form-group"><label>City</label><select name="city" value={formData.city} onChange={onChange} required><option value="">Select Your City</option>{cities.map(c => <option key={c} value={c}>{c}</option>)}</select></div>}
-            {!isLoginView && (
-              <>
-                <div className="form-group"><label>Address Line 1</label><input type="text" name="addressLine" value={formData.addressLine} placeholder="Flat No, Building Name, Street" onChange={onChange} required /></div>
-                <div className="form-group"><label>Area, City</label><input type="text" name="location" value={formData.location} onChange={handleLocationChange} placeholder="Start typing your Area..." list="location-suggestions" required /><datalist id="location-suggestions">{locationSuggestions.map(loc => <option key={loc} value={loc} />)}</datalist></div>
-              </>
-            )}
-            <div className="form-group"><label>Password</label><input type="password" name="password" value={formData.password} placeholder="Enter your password" onChange={onChange} required /></div>
-            <button type="submit" className="btn btn-primary btn-block" disabled={serverStatus === 'waking'}>{isLoginView ? 'Login' : 'Sign Up'}</button>
-          </form>
-
-          {activeRole === 'Citizen' && (<div className="toggle-text">{isLoginView ? "Don't have an account?" : "Already have an account?"}<button type="button" onClick={() => setIsLoginView(!isLoginView)} className="toggle-button">{isLoginView ? 'Sign Up' : 'Login'}</button></div>)}
-          {(activeRole === 'Worker' || activeRole === 'Officer') && isLoginView && (<div className="toggle-text">For login assistance, please contact your administration.</div>)}
-        </div>
-        
         {isLoginView && (
           <div className="quick-login-section">
             <p className="quick-login-title" style={{color: '#ff4d4f', fontSize: '1.1rem'}}>
@@ -208,6 +179,35 @@ const Login = () => {
             </div>
           </div>
         )}
+
+        <div className="form-card" style={{marginTop: '1rem'}}>
+          <div className="role-selector">
+            <button onClick={() => setRole('Citizen')} className={activeRole === 'Citizen' ? 'active' : ''}>Citizen</button>
+            <button onClick={() => setRole('Worker')} className={activeRole === 'Worker' ? 'active' : ''}>Worker</button>
+            <button onClick={() => setRole('Officer')} className={activeRole === 'Officer' ? 'active' : ''}>Officer</button>
+          </div>
+
+          <h2>{isLoginView ? 'Welcome Back' : 'Create Citizen Account'}</h2>
+          <p>{isLoginView ? 'Log in to access your portal.' : 'Sign up to report issues and earn rewards.'}</p>
+          
+          <form onSubmit={onSubmit} ref={formRef}>
+            {!isLoginView && <div className="form-group"><label>Full Name</label><input type="text" name="name" value={formData.name} placeholder="e.g., Anmol Patil" onChange={onChange} required /></div>}
+            {(activeRole === 'Citizen') && <div className="form-group"><label>Email Address</label><input type="email" name="email" value={formData.email} placeholder="e.g., user@example.com" onChange={onChange} required /></div>}
+            {(activeRole === 'Worker' && isLoginView) && <div className="form-group"><label>Worker ID</label><input type="text" name="workerId" value={formData.workerId} placeholder="e.g., WKR-PUNE-01" onChange={onChange} required /></div>}
+            {(activeRole === 'Officer' && isLoginView) && <div className="form-group"><label>City</label><select name="city" value={formData.city} onChange={onChange} required><option value="">Select Your City</option>{cities.map(c => <option key={c} value={c}>{c}</option>)}</select></div>}
+            {!isLoginView && (
+              <>
+                <div className="form-group"><label>Address Line 1</label><input type="text" name="addressLine" value={formData.addressLine} placeholder="Flat No, Building Name, Street" onChange={onChange} required /></div>
+                <div className="form-group"><label>Area, City</label><input type="text" name="location" value={formData.location} onChange={handleLocationChange} placeholder="Start typing your Area..." list="location-suggestions" required /><datalist id="location-suggestions">{locationSuggestions.map(loc => <option key={loc} value={loc} />)}</datalist></div>
+              </>
+            )}
+            <div className="form-group"><label>Password</label><input type="password" name="password" value={formData.password} placeholder="Enter your password" onChange={onChange} required /></div>
+            <button type="submit" className="btn btn-primary btn-block" disabled={serverStatus === 'waking'}>{isLoginView ? 'Login' : 'Sign Up'}</button>
+          </form>
+
+          {activeRole === 'Citizen' && (<div className="toggle-text">{isLoginView ? "Don't have an account?" : "Already have an account?"}<button type="button" onClick={() => setIsLoginView(!isLoginView)} className="toggle-button">{isLoginView ? 'Sign Up' : 'Login'}</button></div>)}
+          {(activeRole === 'Worker' || activeRole === 'Officer') && isLoginView && (<div className="toggle-text">For login assistance, please contact your administration.</div>)}
+        </div>
         
         <div className="public-reports-section">
           <Link to="/officer-progress" className="btn btn-secondary btn-block">
