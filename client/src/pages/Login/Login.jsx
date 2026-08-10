@@ -21,18 +21,35 @@ const Login = () => {
   const [selectedWorkerId, setSelectedWorkerId] = useState('');
   const [selectedCitizenEmail, setSelectedCitizenEmail] = useState(''); // <-- NEW: State for citizen dropdown
 
+  const [serverStatus, setServerStatus] = useState('checking');
+  const [countdown, setCountdown] = useState(50);
+
   const navigate = useNavigate();
   const { login } = useAuth();
   const formRef = useRef();
 
   useEffect(() => {
+    let timer;
     const fetchInitialData = async () => {
       try {
+        // If the request takes longer than 1.5s, assume Render is spinning up
+        const wakeTimeout = setTimeout(() => {
+          setServerStatus('waking');
+          timer = setInterval(() => {
+            setCountdown(prev => (prev > 0 ? prev - 1 : 0));
+          }, 1000);
+        }, 1500);
+
         const [citiesRes, workersRes, citizensRes] = await Promise.all([
           axios.get('/areas/cities'),
           axios.get('/users/all-workers'),
-          axios.get('/users/all-citizens') // <-- NEW: Fetch all citizens
+          axios.get('/users/all-citizens')
         ]);
+        
+        clearTimeout(wakeTimeout);
+        if (timer) clearInterval(timer);
+        setServerStatus('online');
+
         setCities(citiesRes.data.data);
         setWorkers(workersRes.data.data);
         setCitizens(citizensRes.data.data);
@@ -44,10 +61,12 @@ const Login = () => {
           setSelectedCitizenEmail(citizensRes.data.data[0].email);
         }
       } catch (error) {
+        setServerStatus('error');
         console.error("Failed to fetch initial login data", error);
       }
     };
     fetchInitialData();
+    return () => { if (timer) clearInterval(timer); };
   }, []);
 
   const onChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -114,7 +133,20 @@ const Login = () => {
   return (
     <div className="login-page-container">
       <div className="form-container">
-        <div className="form-card">
+        
+        {/* Server Status Banner */}
+        {serverStatus === 'waking' && (
+          <div className="server-status-banner warning">
+            <strong>Server is waking up!</strong> Please allow up to {countdown} seconds for the free backend to start.
+          </div>
+        )}
+        {serverStatus === 'online' && (
+          <div className="server-status-banner success">
+            <strong>Server Online!</strong> Fast login available.
+          </div>
+        )}
+
+        <div className="form-card" style={{marginTop: '1rem'}}>
           <div className="role-selector">
             <button onClick={() => setRole('Citizen')} className={activeRole === 'Citizen' ? 'active' : ''}>Citizen</button>
             <button onClick={() => setRole('Worker')} className={activeRole === 'Worker' ? 'active' : ''}>Worker</button>
@@ -136,7 +168,7 @@ const Login = () => {
               </>
             )}
             <div className="form-group"><label>Password</label><input type="password" name="password" value={formData.password} placeholder="Enter your password" onChange={onChange} required /></div>
-            <button type="submit" className="btn btn-primary btn-block">{isLoginView ? 'Login' : 'Sign Up'}</button>
+            <button type="submit" className="btn btn-primary btn-block" disabled={serverStatus === 'waking'}>{isLoginView ? 'Login' : 'Sign Up'}</button>
           </form>
 
           {activeRole === 'Citizen' && (<div className="toggle-text">{isLoginView ? "Don't have an account?" : "Already have an account?"}<button type="button" onClick={() => setIsLoginView(!isLoginView)} className="toggle-button">{isLoginView ? 'Sign Up' : 'Login'}</button></div>)}
@@ -145,32 +177,34 @@ const Login = () => {
         
         {isLoginView && (
           <div className="quick-login-section">
-            <p className="quick-login-title">For Demonstration</p>
+            <p className="quick-login-title" style={{color: '#ff4d4f', fontSize: '1.1rem'}}>
+              <strong>Please use the given test options below for a quick login!</strong>
+            </p>
             
             <div className="citizen-login-dropdown">
-              <select value={selectedCitizenEmail} onChange={(e) => setSelectedCitizenEmail(e.target.value)}>
-                {citizens.map(citizen => (
+              <select value={selectedCitizenEmail} onChange={(e) => setSelectedCitizenEmail(e.target.value)} disabled={serverStatus === 'waking' || citizens.length === 0}>
+                {citizens.length === 0 ? <option>Loading test accounts...</option> : citizens.map(citizen => (
                   <option key={citizen.email} value={citizen.email}>
                     {citizen.name}
                   </option>
                 ))}
               </select>
-              <button onClick={handleCitizenDropdownLogin}>Login as Citizen</button>
+              <button onClick={handleCitizenDropdownLogin} disabled={serverStatus === 'waking' || citizens.length === 0}>Login as Citizen</button>
             </div>
 
             <div className="worker-login-dropdown" style={{marginTop: '10px'}}>
-              <select value={selectedWorkerId} onChange={(e) => setSelectedWorkerId(e.target.value)}>
-                {workers.map(worker => (
+              <select value={selectedWorkerId} onChange={(e) => setSelectedWorkerId(e.target.value)} disabled={serverStatus === 'waking' || workers.length === 0}>
+                {workers.length === 0 ? <option>Loading test workers...</option> : workers.map(worker => (
                   <option key={worker.workerId} value={worker.workerId}>
                     {worker.name} ({worker.workerId})
                   </option>
                 ))}
               </select>
-              <button onClick={handleWorkerDropdownLogin}>Login as Worker</button>
+              <button onClick={handleWorkerDropdownLogin} disabled={serverStatus === 'waking' || workers.length === 0}>Login as Worker</button>
             </div>
 
             <div className="quick-login-buttons" style={{marginTop: '10px'}}>
-              <button onClick={() => handleQuickLogin('Officer', { city: 'Pune', password: 'password123' })}>Login as Priya (Officer)</button>
+              <button onClick={() => handleQuickLogin('Officer', { city: 'Pune', password: 'password123' })} disabled={serverStatus === 'waking'}>Login as Priya (Officer)</button>
             </div>
           </div>
         )}

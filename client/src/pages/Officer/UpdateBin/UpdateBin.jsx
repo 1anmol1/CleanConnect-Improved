@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../../hooks/useAuth.js';
+import useScrollToTop from '../../../hooks/useScrollToTop';
 // THE FIX: Import the new 'AdvancedMarkerElement'
 import { useJsApiLoader, GoogleMap, MarkerF, Marker } from '@react-google-maps/api';
 import { FaMapPin } from 'react-icons/fa';
@@ -16,6 +17,7 @@ const cityCoordinates = {
 };
 
 const UpdateBin = () => {
+  useScrollToTop();
   const { user } = useAuth();
   const [formData, setFormData] = useState({ binId: '', category: 'Waste', coordinates: '', area: '' });
   const [areas, setAreas] = useState([]);

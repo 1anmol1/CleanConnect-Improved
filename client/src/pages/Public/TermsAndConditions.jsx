@@ -1,6 +1,8 @@
 import React from 'react';
+import useScrollToTop from '../../hooks/useScrollToTop';
 
 const TermsAndConditions = () => {
+  useScrollToTop();
   return (
     <div className="container" style={{ padding: '40px 20px', minHeight: '80vh' }}>
       <h1>Terms and Conditions</h1>

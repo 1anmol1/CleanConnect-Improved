@@ -5,8 +5,12 @@ import { FaBroadcastTower, FaRoute, FaUsers, FaArrowRight } from 'react-icons/fa
 import heroImage from '../../assets/hero.png';
 import './Home.css';
 
+import { useAuth } from '../../hooks/useAuth';
+
 const Home = () => {
   useScrollToTop();
+  const { user } = useAuth();
+  
   return (
     <div className="home-page">
       {/* Hero Section */}
@@ -20,9 +24,17 @@ const Home = () => {
           <p className="hero-subtitle">
             Leveraging smart technology and real-time data to create efficient, clean, and sustainable communities right here in Pune.
           </p>
-          <Link to="/citizen/dashboard" className="btn btn-primary btn-large">
-            View Live Map <FaArrowRight className="arrow-icon" />
-          </Link>
+          <div className="hero-buttons">
+            {user ? (
+              <Link to={`/${user.role.toLowerCase()}/dashboard`} className="btn btn-primary btn-large">
+                Go to Portal <FaArrowRight className="arrow-icon" />
+              </Link>
+            ) : (
+              <Link to="/login" className="btn btn-primary btn-large">
+                Login / Register to Access Portal <FaArrowRight className="arrow-icon" />
+              </Link>
+            )}
+          </div>
         </div>
       </header>
 

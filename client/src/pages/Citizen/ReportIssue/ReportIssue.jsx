@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import useScrollToTop from '../../../hooks/useScrollToTop';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { FaCloudUploadAlt, FaHistory } from 'react-icons/fa';
@@ -9,6 +10,7 @@ import { useAuth } from '../../../hooks/useAuth';
 import './ReportIssue.css';
 
 const ReportIssue = () => {
+  useScrollToTop();
     const { user } = useAuth();
     const [formData, setFormData] = useState({
         issueType: 'Overflowing Bin',
