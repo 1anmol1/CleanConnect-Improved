@@ -96,7 +96,7 @@ const ReportIssue = () => {
             setPreview(null);
 
             // Navigate to history or stay
-            navigate('/citizen/my-reports');
+            navigate('/citizen/dashboard');
 
         } catch (error) {
             console.error(error);

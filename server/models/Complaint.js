@@ -5,11 +5,10 @@ const complaintSchema = new mongoose.Schema(
     issueType: {
       type: String,
       required: [true, 'Please select an issue type'],
-      enum: ['Overflowing Bin', 'Damaged Bin', 'Waste Spilled Nearby', 'Pothole', 'Streetlight Issue', 'Water Leakage', 'Fallen Tree', 'Other'],
+      enum: ['Overflowing Bin', 'Damaged Bin', 'Waste Spilled Nearby', 'Pothole', 'Streetlight Issue', 'Water Leakage', 'Fallen Tree', 'Electricity', 'Drainage', 'Air Quality', 'Traffic', 'Other'],
     },
     description: {
       type: String,
-      required: [true, 'Please provide a description'],
     },
     location: {
       lat: { type: Number, required: true },

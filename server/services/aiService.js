@@ -92,7 +92,7 @@ Also remember to give shorter answer responses of about maximum of 30 words.
  */
 export async function generateChatResponse(userMessage) {
   // Use the correct, updated model name 'gemini-1.0-pro'
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
   try {
     const chat = model.startChat({
       history: [

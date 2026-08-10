@@ -27,6 +27,10 @@ app.get('/', (req, res) => {
   res.send('CleanConnect API is running...');
 });
 
+app.get('/api/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
 // --- THE FIX IS HERE ---
 // This is a more robust way to define paths in an ES Module environment.
 const __filename = fileURLToPath(import.meta.url);

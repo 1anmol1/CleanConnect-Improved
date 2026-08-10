@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
+import axios from 'axios';
 import { useAuth } from './hooks/useAuth.js';
 import useVoiceAssistant from './hooks/useVoiceAssistant.js';
 
@@ -46,6 +47,37 @@ function App() {
   
   const [chatbotOpen, setChatbotOpen] = useState(false);
   const [initialChatbotMessage, setInitialChatbotMessage] = useState('');
+  
+  // Render Cold Start UI State
+  const [serverReady, setServerReady] = useState(false);
+  const [showWakeMessage, setShowWakeMessage] = useState(false);
+
+  useEffect(() => {
+    let timeoutId;
+    
+    const wakeServer = async () => {
+      try {
+        // If it takes more than 1 second, show the "Waking up" message
+        timeoutId = setTimeout(() => setShowWakeMessage(true), 1000);
+        
+        // This request will hang on Render until the server spins up (approx 50s)
+        await axios.get('/health');
+        
+        clearTimeout(timeoutId);
+        setServerReady(true);
+      } catch (error) {
+        // If the health check fails, we still let them into the app to see the error handled natively,
+        // or we could retry. For now, assume it's up if it responds at all.
+        console.error("Health check failed, assuming server is up anyway:", error);
+        clearTimeout(timeoutId);
+        setServerReady(true);
+      }
+    };
+
+    wakeServer();
+    
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   const handleVoiceCommand = () => {
     setChatbotOpen(true);
@@ -55,6 +87,22 @@ function App() {
   const { isListening, startListening, stopListening, isSpeechSupported } = useVoiceAssistant({
     onCommand: handleVoiceCommand,
   });
+
+  if (!serverReady && showWakeMessage) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f4f7f6', textAlign: 'center', padding: '20px' }}>
+        <div className="spinner" style={{ width: '50px', height: '50px', border: '5px solid #ccc', borderTopColor: '#4CAF50', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '20px' }}></div>
+        <h2 style={{ color: '#333' }}>Waking up the server...</h2>
+        <p style={{ color: '#666', maxWidth: '400px' }}>Since we are using a free hosting tier, the server goes to sleep after inactivity. It usually takes about <strong>50 seconds</strong> to wake up. Please hang tight!</p>
+        <style>{`
+          @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        `}</style>
+      </div>
+    );
+  }
+
+  // If not ready but showWakeMessage is false, return null (blank) to avoid flash of content
+  if (!serverReady) return null;
 
   return (
     <div className="app-wrapper">

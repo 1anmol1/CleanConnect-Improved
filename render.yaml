@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: cleanconnect-backend
+    env: node
+    buildCommand: cd server && npm install
+    startCommand: cd server && npm start
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false # Requires manual entry in the Render Dashboard
+      - key: JWT_SECRET
+        sync: false # Requires manual entry in the Render Dashboard
+      - key: GEMINI_API_KEY
+        sync: false # Requires manual entry in the Render Dashboard
