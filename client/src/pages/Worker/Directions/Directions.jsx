@@ -31,14 +31,20 @@ const Directions = () => {
   const { isLoaded } = useJsApiLoader({ googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY });
   
   const runRouteOptimization = useCallback(() => {
-    if (!workerLocation || !isLoaded || currentBins.length === 0) return;
+    if (!workerLocation || !isLoaded || currentBins.length === 0) {
+      setIsOptimizing(false);
+      setOptimizedRoute({ stops: [] });
+      setRouteSummary("No bins available.");
+      return;
+    }
 
     if (currentBins.length < 2) {
+      setIsOptimizing(false);
       setOptimizedRoute({ stops: [] });
       setRouteSummary(`Not enough bins to generate a route.`);
       return;
     }
-    // Set a different loading state here to show a different message
+    
     setIsOptimizing(true); 
     const directionsService = new window.google.maps.DirectionsService();
     const waypoints = currentBins.map(bin => ({ location: { lat: bin.location.coordinates[1], lng: bin.location.coordinates[0] }, stopover: true }));
