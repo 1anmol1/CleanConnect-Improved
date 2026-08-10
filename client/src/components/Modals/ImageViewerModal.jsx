@@ -1,6 +1,7 @@
 import React from 'react';
 import { FaTimes, FaTrash } from 'react-icons/fa';
 import UniversalModal from './UniversalModal'; // We reuse the universal modal for consistency
+import { getImageUrl } from '../../../utils/getImageUrl';
 import './ImageViewerModal.css';
 
 const ImageViewerModal = ({ isOpen, onClose, complaint, onReject }) => {
@@ -30,7 +31,7 @@ const ImageViewerModal = ({ isOpen, onClose, complaint, onReject }) => {
           
           <div className="image-container">
             {complaint.imageUrl ? (
-              <img src={`http://localhost:5000${complaint.imageUrl}`} alt="Complaint Proof" />
+              <img src={getImageUrl(complaint.imageUrl)} alt="Complaint Proof" />
             ) : (
               <p className="no-image-text">No proof image was provided for this complaint.</p>
             )}

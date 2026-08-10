@@ -3,6 +3,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { FaThumbsUp, FaThumbsDown } from 'react-icons/fa';
 import Loader from '../../components/Loader/Loader'; // It's good practice to use a loader
+import { getImageUrl } from '../../../utils/getImageUrl';
 import './ComplaintHistory.css';
 
 const ComplaintHistory = () => {
@@ -106,9 +107,9 @@ const ComplaintHistory = () => {
                             <div className="feedback-section">
                                 {c.resolutionImageUrl && (
                                     <div className="proof-image-container">
-                                        <p className="proof-title"><strong>Resolution Proof:</strong></p>
-                                        <a href={`http://localhost:5000${c.resolutionImageUrl}`} target="_blank" rel="noopener noreferrer">
-                                            <img className="proof-image" src={`http://localhost:5000${c.resolutionImageUrl}`} alt="Proof of resolution" />
+                                        <h4>Resolution Proof</h4>
+                                        <a href={getImageUrl(c.resolutionImageUrl)} target="_blank" rel="noopener noreferrer">
+                                            <img className="proof-image" src={getImageUrl(c.resolutionImageUrl)} alt="Proof of resolution" />
                                         </a>
                                     </div>
                                 )}

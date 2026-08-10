@@ -183,7 +183,9 @@ const ComplaintManagement = () => {
                                             <FaExclamationTriangle /> {c.priority}
                                         </td>
                                         <td data-label="Issue" className="issue-cell">
-                                            <strong>{c.issueType}</strong><br />
+                                            {c.imageUrl && (
+                                                <img src={getImageUrl(c.imageUrl)} alt="Issue" className="issue-thumbnail" />
+                                            )}<strong>{c.issueType}</strong><br />
                                             <small className="bin-id-small">Bin ID: {c.binId || 'N/A'}</small>
                                         </td>
                                         <td data-label="Proof" className="proof-cell">

@@ -4,6 +4,8 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { FaBell, FaTrash, FaInfoCircle, FaThumbsUp, FaThumbsDown } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { parseMessage } from '../../../utils/parseMessage';
+import { getImageUrl } from '../../../utils/getImageUrl';
 import { useAuth } from '../../../hooks/useAuth.js';
 import Loader from '../../../components/Loader/Loader.jsx';
 import dashboardHeroImage from '/src/assets/notification.png';
@@ -88,7 +90,7 @@ const Notifications = () => {
         ) : (
           notifications.map(notif => {
             const { textParts } = parseMessage(notif.message);
-            const complaint = notif.relatedComplaint; // The full complaint object
+            const complaint = notif.relatedComplaint;
 
             return (
               <div key={notif._id} className="notification-item card">
@@ -101,14 +103,42 @@ const Notifications = () => {
                     {textParts[1]}
                   </p>
                   
-                  {/* NEW: Display image and details if it's a broadcast about a complaint */}
                   {notif.type === 'Broadcast' && complaint && (
                     <div className="complaint-details-section">
                       <p><strong>Description:</strong> {complaint.description}</p>
+                      
+                      {notif.type === 'Broadcast' && complaint && complaint.reportedBy === user?._id && (
+                        <div className="citizen-voting-section">
+                          <p className="voting-prompt" style={{color: '#666', fontStyle: 'italic'}}>You reported this issue. You cannot vote on it.</p>
+                        </div>
+                      )}
+
+                      {notif.type === 'Broadcast' && complaint && complaint.status === 'AwaitingApproval' && complaint.reportedBy !== user?._id && (
+                        <div className="citizen-voting-section">
+                          <p className="voting-prompt">Is this issue authentic?</p>
+                          <div className="voting-buttons">
+                            <button
+                              className="btn-vote btn-like"
+                              onClick={() => handleVote(complaint._id, 'like')}
+                              disabled={complaint.votedBy?.includes(user?._id)}
+                            >
+                              <FaThumbsUp /> Yes ({complaint.likes || 0})
+                            </button>
+                            <button
+                              className="btn-vote btn-dislike"
+                              onClick={() => handleVote(complaint._id, 'dislike')}
+                              disabled={complaint.votedBy?.includes(user?._id)}
+                            >
+                              <FaThumbsDown /> No ({complaint.dislikes || 0})
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
                       {complaint.imageUrl && (
-                        <div className="notification-image-container">
-                          <a href={complaint.imageUrl} target="_blank" rel="noopener noreferrer">
-                            <img src={complaint.imageUrl} alt="Issue reported by a citizen" />
+                        <div className="complaint-image-preview mt-3">
+                          <a href={getImageUrl(complaint.imageUrl)} target="_blank" rel="noopener noreferrer">
+                            <img src={getImageUrl(complaint.imageUrl)} alt="Issue reported by a citizen" />
                           </a>
                         </div>
                       )}
@@ -116,20 +146,7 @@ const Notifications = () => {
                   )}
 
                   <small>{new Date(notif.createdAt).toLocaleString()}</small>
-                  
-                  {notif.type === 'Broadcast' && complaint && (
-                    <div className="vote-section">
-                        <span>Is this report genuine?</span>
-                        <div className="vote-buttons">
-                            <button onClick={() => handleVote(complaint._id, 'like')} disabled={notif.voted}>
-                                <FaThumbsUp /> Yes
-                            </button>
-                            <button onClick={() => handleVote(complaint._id, 'dislike')} disabled={notif.voted}>
-                                <FaThumbsDown /> No
-                            </button>
-                        </div>
-                    </div>
-                  )}
+
                 </div>
                 <button className="delete-notification-btn" onClick={() => handleDeleteNotification(notif._id)} title="Delete Notification"><FaTrash /></button>
               </div>
