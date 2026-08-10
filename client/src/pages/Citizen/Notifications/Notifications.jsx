@@ -4,7 +4,6 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { FaBell, FaTrash, FaInfoCircle, FaThumbsUp, FaThumbsDown } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
-import { parseMessage } from '../../../utils/parseMessage';
 import { getImageUrl } from '../../../utils/getImageUrl';
 import { useAuth } from '../../../hooks/useAuth.js';
 import Loader from '../../../components/Loader/Loader.jsx';
