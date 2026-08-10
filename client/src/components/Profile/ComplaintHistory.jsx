@@ -3,7 +3,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { FaThumbsUp, FaThumbsDown } from 'react-icons/fa';
 import Loader from '../../components/Loader/Loader'; // It's good practice to use a loader
-import { getImageUrl } from '../../../utils/getImageUrl';
+import { getImageUrl } from '../../utils/getImageUrl';
 import './ComplaintHistory.css';
 
 const ComplaintHistory = () => {

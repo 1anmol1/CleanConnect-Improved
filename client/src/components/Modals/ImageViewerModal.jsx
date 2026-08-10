@@ -1,7 +1,7 @@
 import React from 'react';
 import { FaTimes, FaTrash } from 'react-icons/fa';
 import UniversalModal from './UniversalModal'; // We reuse the universal modal for consistency
-import { getImageUrl } from '../../../utils/getImageUrl';
+import { getImageUrl } from '../../utils/getImageUrl';
 import './ImageViewerModal.css';
 
 const ImageViewerModal = ({ isOpen, onClose, complaint, onReject }) => {

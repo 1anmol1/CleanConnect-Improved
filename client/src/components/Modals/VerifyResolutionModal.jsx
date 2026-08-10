@@ -1,7 +1,7 @@
 import React from 'react';
 import { FaTimes, FaCheckCircle, FaUndo, FaImage, FaEye } from 'react-icons/fa';
 import UniversalModal from './UniversalModal';
-import { getImageUrl } from '../../../utils/getImageUrl';
+import { getImageUrl } from '../../utils/getImageUrl';
 import './VerifyResolutionModal.css';
 
 const VerifyResolutionModal = ({ isOpen, onClose, onVerify, task }) => {
