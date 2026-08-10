@@ -32,6 +32,8 @@ const Resolutions = () => {
 
   useEffect(() => {
     fetchResolutions();
+    const interval = setInterval(fetchResolutions, 10000); // Poll every 10 seconds
+    return () => clearInterval(interval);
   }, []);
 
   const openResolveModal = (task) => {
@@ -83,7 +85,6 @@ const Resolutions = () => {
                 <div className="task-details">
                   <div className="task-info">
                     <span className="task-issue-type">{task.issueType}</span>
-                    {task.binId && <span className="task-bin-id">Bin ID: {task.binId}</span>}
                   </div>
                   <p className="task-description">{task.description || 'No specific description provided.'}</p>
                   <span className={`status-text ${task.status.toLowerCase()}`}>{task.status}</span>

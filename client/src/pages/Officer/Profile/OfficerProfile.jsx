@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import useScrollToTop from '../../../hooks/useScrollToTop';
 import axios from 'axios';
-import { FaUsers, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
+import { FaUsers, FaCheckCircle, FaExclamationCircle, FaSignOutAlt } from 'react-icons/fa';
 import { useAuth } from '../../../hooks/useAuth.js';
 import Loader from '../../../components/Loader/Loader.jsx';
 import profileImage from '/src/assets/profile.jpg';
@@ -9,7 +9,7 @@ import './OfficerProfile.css';
 
 const OfficerProfile = () => {
   useScrollToTop();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [stats, setStats] = useState({ workersManaged: 0, complaintsVerified: 0, pendingComplaints: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -35,7 +35,29 @@ const OfficerProfile = () => {
   }
 
   return (
-    <div className="profile-container container fade-in">
+    <div className="profile-container container fade-in" style={{ position: 'relative' }}>
+      
+      {/* Mobile Logout Button positioned top-right */}
+      <button 
+        onClick={logout} 
+        className="logout-mobile-btn-absolute" 
+        style={{ 
+          display: 'none', 
+          position: 'absolute', 
+          top: '20px', 
+          right: '20px', 
+          backgroundColor: '#fff', 
+          color: 'var(--nav-danger-color)', 
+          border: '1px solid var(--nav-danger-color)', 
+          padding: '8px 15px', 
+          borderRadius: '6px', 
+          fontSize: '0.9rem', 
+          zIndex: 10 
+        }}
+      >
+        <FaSignOutAlt style={{ marginRight: '5px' }} /> Logout
+      </button>
+
       <div className="profile-header">
         <img src={profileImage} alt="Officer Avatar" className="profile-avatar" />
         <h2>{user?.name}'s Profile</h2>

@@ -9,7 +9,15 @@ import {
     FaQrcode, 
     FaPlus, 
     FaUsersCog,
-    FaMicrophone
+    FaMicrophone,
+    FaHome,
+    FaCamera,
+    FaClipboardList,
+    FaTrophy,
+    FaUser,
+    FaMapSigns,
+    FaChartLine,
+    FaTasks
 } from 'react-icons/fa';
 import { BsTrashFill } from 'react-icons/bs';
 import { useAuth } from '../../hooks/useAuth.js';
@@ -86,6 +94,40 @@ const Navbar = ({ isListening, startListening, stopListening, isSpeechSupported,
   const isBellVisible = user && (user.role === 'Citizen' || user.role === 'Worker');
   const profileLink = user && user.role ? `/${user.role.toLowerCase()}/profile` : '/login';
 
+  const getMobileBottomLinks = () => {
+    if (!user) return [];
+    switch (user.role) {
+      case 'Citizen':
+        return [
+          { title: 'Dashboard', path: '/citizen/dashboard', icon: <FaHome /> },
+          { title: 'History', path: '/citizen/notifications', icon: <FaClipboardList /> },
+          { title: 'Scan QR', path: '#', icon: <FaQrcode />, isAction: true, onClick: () => setIsScannerOpen(true) },
+          { title: 'Rewards', path: '/citizen/rewards', icon: <FaTrophy /> },
+          { title: 'Profile', path: profileLink, icon: <FaUser /> }
+        ];
+      case 'Worker':
+        return [
+          { title: 'Dashboard', path: '/worker/dashboard', icon: <FaHome /> },
+          { title: 'Route', path: '/worker/directions', icon: <FaMapSigns /> },
+          { title: 'Report', path: '/worker/new-complaint', icon: <FaCamera />, isAction: true },
+          { title: 'Tasks', path: '/worker/resolutions', icon: <FaTasks /> },
+          { title: 'Profile', path: profileLink, icon: <FaUser /> }
+        ];
+      case 'Officer':
+        return [
+          { title: 'Dashboard', path: '/officer/dashboard', icon: <FaHome /> },
+          { title: 'Add Bin', path: '/officer/update-bin', icon: <FaQrcode /> },
+          { title: 'Workers', path: '/officer/manage-workers', icon: <FaUsersCog />, isAction: true },
+          { title: 'Progress', path: '/officer/worker-progress', icon: <FaChartLine /> },
+          { title: 'Profile', path: profileLink, icon: <FaUser /> }
+        ];
+      default:
+        return [];
+    }
+  };
+
+  const mobileBottomLinks = getMobileBottomLinks();
+
   return (
     <>
       <nav className="navbar" ref={navRef}>
@@ -133,7 +175,7 @@ const Navbar = ({ isListening, startListening, stopListening, isSpeechSupported,
                         <FaUsersCog /> Add or Manage Workers
                       </NavLink>
                       <NavLink to="/officer/update-bin" onClick={() => setIsActionsMenuOpen(false)}>
-                        <BsTrashFill /> Add New Bin
+                        <BsTrashFill /> Add New Bin / Sensor
                       </NavLink>
                     </div>
                   </div>
@@ -165,6 +207,40 @@ const Navbar = ({ isListening, startListening, stopListening, isSpeechSupported,
       </nav>
       
       <QrScannerModal isOpen={isScannerOpen} onClose={() => setIsScannerOpen(false)} />
+
+      {/* NEW: Mobile Bottom Tab Navigation */}
+      {user && (
+        <div className="bottom-nav-bar">
+          {mobileBottomLinks.map((link, index) => {
+            if (link.isAction) {
+              if (link.onClick) {
+                return (
+                  <div key={index} className="bottom-nav-item center-action" onClick={link.onClick} style={{ cursor: 'pointer' }}>
+                    <div className="center-action-btn">
+                      {link.icon}
+                    </div>
+                    <span>{link.title}</span>
+                  </div>
+                );
+              }
+              return (
+                <NavLink key={index} to={link.path} className="bottom-nav-item center-action" onClick={closeMobileMenu}>
+                  <div className="center-action-btn">
+                    {link.icon}
+                  </div>
+                  <span>{link.title}</span>
+                </NavLink>
+              );
+            }
+            return (
+              <NavLink key={index} to={link.path} className="bottom-nav-item" onClick={closeMobileMenu}>
+                {link.icon}
+                <span>{link.title}</span>
+              </NavLink>
+            );
+          })}
+        </div>
+      )}
     </>
   );
 };

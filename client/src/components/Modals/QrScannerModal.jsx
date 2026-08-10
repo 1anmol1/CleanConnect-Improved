@@ -4,6 +4,7 @@ import { Html5QrcodeScanner } from 'html5-qrcode';
 import UniversalModal from './UniversalModal';
 import { FaTimes } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import axios from 'axios';
 
 const QrScannerModal = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ const QrScannerModal = ({ isOpen, onClose }) => {
       let scanner; // Define scanner here to be accessible in the cleanup function
 
       // This function runs when the scanner successfully detects any QR code.
-      const onScanSuccess = (decodedText, decodedResult) => {
+      const onScanSuccess = async (decodedText, decodedResult) => {
         
         // --- THE FIX IS HERE ---
         // 1. We use a try...catch block to safely handle any scanned data.
@@ -24,22 +25,42 @@ const QrScannerModal = ({ isOpen, onClose }) => {
           const url = new URL(decodedText);
           
           // 3. We check if the path is correct and if it has a 'binId' parameter.
-          const binId = url.searchParams.get('binId');
+          // Note: keeping 'binId' query param for backward compatibility, but we treat it as sensorId.
+          const binId = url.searchParams.get('binId') || url.searchParams.get('sensorId');
           
-          if (url.pathname === '/citizen/report' && binId) {
-            // Success! We found a valid bin URL.
-            toast.success(`Bin ${binId} scanned! Redirecting...`);
+          if ((url.pathname === '/citizen/report' || url.pathname.includes('report')) && binId) {
+            // Success! We found a valid bin/sensor URL.
             
-            // It's crucial to stop the scanner to turn off the camera before navigating.
+            // Stop the scanner immediately
             if (scanner) {
               scanner.clear().catch(error => console.error("Failed to clear scanner on success.", error));
             }
             
+            toast.info(`Fetching details for Sensor ${binId}...`);
+            
+            let areaParam = '';
+            let categoryParam = '';
+            
+            try {
+                const token = localStorage.getItem('token');
+                const response = await axios.get(`/bins/by-id/${binId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (response.data && response.data.data) {
+                    areaParam = `&area=${encodeURIComponent(response.data.data.area)}`;
+                    categoryParam = `&category=${encodeURIComponent(response.data.data.category || 'Waste')}`;
+                }
+            } catch (fetchError) {
+                console.error("Failed to fetch sensor details", fetchError);
+                // Proceed without pre-filling if fetch fails
+            }
+            
+            toast.success(`Sensor ${binId} scanned successfully!`);
             onClose(); // Close the modal
-            navigate(`/citizen/report?binId=${binId}`); // Navigate to the report page
+            navigate(`/citizen/report?sensorId=${binId}${areaParam}${categoryParam}`); 
           } else {
             // The URL is valid, but it's not a bin URL we recognize.
-            toast.warn("Scanned QR code is not a valid CleanConnect bin URL.");
+            toast.warn("Scanned QR code is not a valid CleanConnect sensor URL.");
           }
         } catch (error) {
           // This block runs if the scanned text is not a valid URL at all (e.g., just plain text).
@@ -75,14 +96,14 @@ const QrScannerModal = ({ isOpen, onClose }) => {
   return (
     <UniversalModal isOpen={isOpen} onClose={onClose}>
       <div className="modal-header">
-        <h2>Scan Bin QR Code</h2>
+        <h2>Scan QR</h2>
         <button onClick={onClose} className="modal-close-btn"><FaTimes /></button>
       </div>
       <div style={{ padding: '1rem', background: '#f0f2f5' }}>
         {/* This div is the target for the Html5QrcodeScanner library. */}
         <div id="qr-reader"></div>
         <p style={{ color: '#333', textAlign: 'center', marginTop: '1rem', fontWeight: '500' }}>
-          Point your camera at the QR code on the dustbin.
+          Point your camera at the QR code on the sensor.
         </p>
       </div>
     </UniversalModal>

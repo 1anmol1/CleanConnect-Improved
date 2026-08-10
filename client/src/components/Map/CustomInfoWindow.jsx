@@ -11,7 +11,7 @@ const ChildBinItem = ({ bin }) => (
   </p>
 );
 
-const CustomInfoWindow = ({ bin, onClose }) => {
+const CustomInfoWindow = ({ item, onClose }) => {
   const [childBins, setChildBins] = useState([]);
   const [loadingChildren, setLoadingChildren] = useState(false);
 
@@ -19,12 +19,12 @@ const CustomInfoWindow = ({ bin, onClose }) => {
   useEffect(() => {
     const fetchChildBins = async () => {
       // We only fetch children if the selected bin is a smart bin.
-      if (bin && bin.isSmartBin) {
+      if (item && item.isSmartBin) {
         setLoadingChildren(true);
         try {
           const token = localStorage.getItem('token');
           // Make an API call to the backend to get the children for this parent bin.
-          const { data } = await axios.get(`/bins/${bin._id}/children`, {
+          const { data } = await axios.get(`/bins/${item._id}/children`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           setChildBins(data.data || []);
@@ -35,31 +35,51 @@ const CustomInfoWindow = ({ bin, onClose }) => {
           setLoadingChildren(false);
         }
       } else {
-        // If the clicked bin is not a smart bin, there are no children to show.
+        // If the clicked item is not a smart bin, there are no children to show.
         setChildBins([]);
       }
     };
 
     fetchChildBins();
-  }, [bin]); // This dependency ensures the effect re-runs when you click a different bin.
+  }, [item]); // This dependency ensures the effect re-runs when you click a different item.
 
-  // Don't render anything if no bin is selected.
-  if (!bin) return null;
+  // Don't render anything if no item is selected.
+  if (!item) return null;
+
+  const isComplaint = !!item.issueType;
+  
+  // Determine position based on item type
+  let position;
+  if (isComplaint) {
+      position = { lat: item.location.lat, lng: item.location.lng };
+  } else if (item.location && item.location.coordinates) {
+      position = { lat: item.location.coordinates[1], lng: item.location.coordinates[0] };
+  } else {
+      return null;
+  }
 
   return (
     <InfoWindowF
-      position={{ lat: bin.location.coordinates[1], lng: bin.location.coordinates[0] }}
+      position={position}
       onCloseClick={onClose}
     >
       <div className="custom-infowindow">
-        {/* Section for the main (parent) bin's information */}
-        <div className="main-bin-info">
-          <h3>{bin.binId}</h3>
-          <p>Status: {bin.status} ({bin.fillLevel}%)</p>
-        </div>
+        {isComplaint ? (
+            <div className="main-bin-info">
+              <h3>{item.issueType}</h3>
+              <p>Status: {item.status}</p>
+              <p>Priority: {item.priority}</p>
+              {item.description && <p style={{fontStyle: 'italic', fontSize: '0.9em'}}>{item.description}</p>}
+            </div>
+        ) : (
+            <div className="main-bin-info">
+              <h3>{item.binId}</h3>
+              <p>Status: {item.status} ({item.fillLevel}%)</p>
+            </div>
+        )}
         
         {/* This section is only displayed for smart bins */}
-        {bin.isSmartBin && (
+        {!isComplaint && item.isSmartBin && (
           <div className="child-bins-section">
             {loadingChildren ? (
               <div className="loading-children"><FaSync className="spinner" /> Loading nearby bins...</div>

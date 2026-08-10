@@ -168,4 +168,16 @@
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(13, 34, 63, 0.4); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(13, 34, 63, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(13, 34, 63, 0); } }
 @keyframes message-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@media(max-width: 480px) { .chatbot-window { right: 15px; bottom: 85px; width: calc(100% - 30px); height: 70vh; } }
+@media(max-width: 960px) {
+  .chatbot-toggler {
+    bottom: 90px; /* Above the 70px bottom nav */
+  }
+}
+@media(max-width: 480px) { 
+  .chatbot-window { 
+    right: 15px; 
+    bottom: 110px; /* Above the toggler */
+    width: calc(100% - 30px); 
+    height: 70vh; 
+  } 
+}

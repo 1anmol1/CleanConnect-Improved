@@ -160,7 +160,7 @@ const ComplaintManagement = () => {
                 </div>
 
                 <div className="complaint-table-container card">
-                    <table className="complaint-table">
+                    <table className="complaint-table responsive-table">
                         <thead>
                             <tr>
                                 <th><input type="checkbox" onChange={handleSelectAll} checked={complaints.length > 0 && selectedComplaints.length === complaints.length} /></th>
@@ -178,28 +178,28 @@ const ComplaintManagement = () => {
                             ) : (
                                 complaints.map(c => (
                                     <tr key={c._id} className={`priority-${c.priority.toLowerCase()} ${selectedComplaints.includes(c._id) ? 'selected-row' : ''}`}>
-                                        <td><input type="checkbox" onChange={() => handleSelectOne(c._id)} checked={selectedComplaints.includes(c._id)} /></td>
-                                        <td className="priority-cell">
+                                        <td data-label="Select"><input type="checkbox" onChange={() => handleSelectOne(c._id)} checked={selectedComplaints.includes(c._id)} /></td>
+                                        <td data-label="Priority" className="priority-cell">
                                             <FaExclamationTriangle /> {c.priority}
                                         </td>
-                                        <td className="issue-cell">
+                                        <td data-label="Issue" className="issue-cell">
                                             <strong>{c.issueType}</strong><br />
                                             <small className="bin-id-small">Bin ID: {c.binId || 'N/A'}</small>
                                         </td>
-                                        <td className="proof-cell">
+                                        <td data-label="Proof" className="proof-cell">
                                             {c.imageUrl && (
                                                 <button className="btn-view-proof" onClick={() => openModal(setIsImageViewerOpen, c)}>
                                                     <FaEye /> View Proof
                                                 </button>
                                             )}
                                         </td>
-                                        <td className="feedback-cell">
+                                        <td data-label="Votes" className="feedback-cell">
                                             <div className="feedback-counts">
                                                 <span className="feedback-positive"><FaThumbsUp /> {c.likes || 0}</span>
                                                 <span className="feedback-negative"><FaThumbsDown /> {c.dislikes || 0}</span>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td data-label="Assigned To">
                                             {c.status === 'Pending' ? (
                                                 <select className="worker-assign-select" id={`worker-select-${c._id}`} defaultValue="">
                                                     <option value="" disabled>Select Worker</option>
@@ -209,7 +209,7 @@ const ComplaintManagement = () => {
                                                 <span>{c.assignedTo?.name || 'N/A'}</span>
                                             )}
                                         </td>
-                                        <td className="status-action-cell">
+                                        <td data-label="Actions" className="status-action-cell">
                                             {c.status === 'Pending' ? (
                                                 <button className="btn btn-primary btn-small" onClick={() => handleAssign(c._id, document.getElementById(`worker-select-${c._id}`).value)}><FaTasks /> Assign</button>
                                             ) : c.status === 'Resolved' ? (

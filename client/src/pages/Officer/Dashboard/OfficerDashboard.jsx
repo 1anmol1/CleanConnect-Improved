@@ -16,6 +16,7 @@ const OfficerDashboard = () => {
   useScrollToTop();
   const { user } = useAuth();
   const [bins, setBins] = useState([]);
+  const [complaints, setComplaints] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const { location: userLocation } = useWorkerLocation();
   const [loading, setLoading] = useState(true);
@@ -34,16 +35,27 @@ const OfficerDashboard = () => {
     const fetchDataAndAnimate = async () => {
       try {
         const token = localStorage.getItem('token');
-        const { data } = await axios.get('/bins', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const [binRes, complaintRes] = await Promise.all([
+          axios.get('/bins', { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get('/complaints', { headers: { Authorization: `Bearer ${token}` } })
+        ]);
 
-        const fetchedBins = data.data.bins || [];
-        const initialVehicles = data.data.vehicles || [];
+        const fetchedBins = binRes.data.data.bins || [];
+        const initialVehicles = binRes.data.data.vehicles || [];
+        let fetchedComplaints = complaintRes.data.data || [];
 
-        const smartBins = fetchedBins.filter(bin => bin.isSmartBin);
-        setBins(smartBins);
+        // Phase 2: Show all bins (removed isSmartBin filter)
+        setBins(fetchedBins);
+        
+        // Phase 2: Always inject dummy issues to keep the map populated for demos
+        const dummyComplaints = [
+            { _id: 'dummy1', issueType: 'Overflowing Bin', priority: 'High', location: { lat: 18.51, lng: 73.80 } },
+            { _id: 'dummy2', issueType: 'Pothole', priority: 'Medium', location: { lat: 18.50, lng: 73.81 } },
+            { _id: 'dummy3', issueType: 'Fallen Tree', priority: 'Emergency', location: { lat: 18.52, lng: 73.79 } }
+        ];
+        
         setVehicles(initialVehicles);
+        setComplaints([...fetchedComplaints, ...dummyComplaints]);
 
         if (isLoaded && initialVehicles.length > 0) {
           animationIntervalsRef.current.forEach(clearInterval);
@@ -93,6 +105,11 @@ const OfficerDashboard = () => {
 
     if (isLoaded) {
       fetchDataAndAnimate();
+      const intervalId = setInterval(fetchDataAndAnimate, 10000); // Poll every 10 seconds
+      return () => {
+        clearInterval(intervalId);
+        animationIntervalsRef.current.forEach(clearInterval);
+      };
     }
     
     return () => {
@@ -120,6 +137,7 @@ const OfficerDashboard = () => {
             <MapComponent 
               center={mapCenter} 
               markers={bins}
+              complaints={complaints}
               vehicles={vehicles}
               userLocation={userLocation}
             />
@@ -133,8 +151,8 @@ const OfficerDashboard = () => {
           </Link>
           <Link to="/officer/update-bin" className="dashboard-card card">
             <FaTools className="card-icon" />
-            <h3>Manage Bins</h3>
-            <p>Add new smart bins to the city network.</p>
+            <h3>Manage Sensors</h3>
+            <p>Add new smart sensors to the city network.</p>
           </Link>
           {/* ADD THIS NEW BUTTON/LINK */}
           <Link to="/officer/worker-progress" className="dashboard-card card">

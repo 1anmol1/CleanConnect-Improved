@@ -17,7 +17,7 @@ const cityCoordinates = {
 
 const UpdateBin = () => {
   const { user } = useAuth();
-  const [formData, setFormData] = useState({ binId: '', coordinates: '', area: '' });
+  const [formData, setFormData] = useState({ binId: '', category: 'Waste', coordinates: '', area: '' });
   const [areas, setAreas] = useState([]);
   const [loadingAreas, setLoadingAreas] = useState(false);
   const [isMapVisible, setIsMapVisible] = useState(false);
@@ -100,6 +100,7 @@ const UpdateBin = () => {
       const payload = { 
           binId: formData.binId,
           area: formData.area,
+          category: formData.category,
           coordinates: [coordsArray[1], coordsArray[0]] 
         };
       
@@ -107,8 +108,8 @@ const UpdateBin = () => {
       await axios.post('/bins', payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      toast.success('New bin added to the network!');
-      setFormData({ binId: '', coordinates: '', area: '' });
+      toast.success('New sensor added to the network!');
+      setFormData({ binId: '', category: 'Waste', coordinates: '', area: '' });
       setIsMapVisible(false);
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to add bin.');
@@ -120,12 +121,25 @@ const UpdateBin = () => {
   return (
     <div className="form-page-container container">
       <div className="form-card-container">
-        <h2>Add New Smart Bin</h2>
-        <p>Manage the smart bin network in {user?.city}.</p>
+        <h2>Add New Smart Sensor</h2>
+        <p>Manage the smart sensor network in {user?.city}.</p>
         <form onSubmit={handleSubmit} className="styled-form">
           <div className="form-group">
-            <label htmlFor="binId">Bin ID</label>
-            <input type="text" name="binId" value={formData.binId} onChange={handleChange} placeholder="e.g., PUNE-KTD-11" required />
+            <label htmlFor="binId">Sensor ID</label>
+            <input type="text" name="binId" value={formData.binId} onChange={handleChange} placeholder="e.g., PUNE-SENS-11" required />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="category">Sensor Category</label>
+            <select name="category" value={formData.category} onChange={handleChange} required>
+              <option value="Waste">Waste (Dustbin)</option>
+              <option value="Electricity">Electricity</option>
+              <option value="Drainage">Drainage</option>
+              <option value="Water Leakage">Water Leakage</option>
+              <option value="Air Quality">Air Quality</option>
+              <option value="Traffic">Traffic</option>
+              <option value="Other">Other</option>
+            </select>
           </div>
           
           <div className="form-group">
@@ -186,7 +200,7 @@ const UpdateBin = () => {
             </div>
           )}
 
-          <button type="submit" className="btn btn-primary btn-submit">Add Bin to Network</button>
+          <button type="submit" className="btn btn-primary btn-submit">Add Sensor to Network</button>
         </form>
       </div>
     </div>

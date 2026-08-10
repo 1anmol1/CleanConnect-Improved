@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { FaCloudUploadAlt, FaHistory } from 'react-icons/fa';
@@ -12,13 +12,28 @@ const ReportIssue = () => {
     const { user } = useAuth();
     const [formData, setFormData] = useState({
         issueType: 'Overflowing Bin',
-        binId: '',
         description: ''
     });
     const [image, setImage] = useState(null);
     const [preview, setPreview] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const searchParams = new URLSearchParams(window.location.search);
+        const sensorId = searchParams.get('sensorId');
+        const area = searchParams.get('area');
+        const category = searchParams.get('category');
+        
+        if (sensorId || category) {
+            setFormData(prev => ({
+                ...prev,
+                issueType: category || 'Other',
+                description: sensorId ? `Issue at sensor ${sensorId} in ${area || 'unknown area'}. ` : ''
+            }));
+            // Optionally auto-open camera here if desired, but user can click it.
+        }
+    }, []);
 
     const handletextChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -45,12 +60,24 @@ const ReportIssue = () => {
 
         const data = new FormData();
         data.append('issueType', formData.issueType);
-        data.append('binId', formData.binId);
         data.append('description', formData.description);
         data.append('photo', image);
 
         try {
             setLoading(true);
+
+            // Fetch Geolocation
+            const position = await new Promise((resolve, reject) => {
+                if (!navigator.geolocation) {
+                    reject(new Error('Geolocation is not supported by your browser'));
+                } else {
+                    navigator.geolocation.getCurrentPosition(resolve, reject);
+                }
+            });
+
+            data.append('lat', position.coords.latitude);
+            data.append('lng', position.coords.longitude);
+
             const token = localStorage.getItem('token');
             await axios.post('/complaints', data, {
                 headers: {
@@ -63,7 +90,6 @@ const ReportIssue = () => {
             // Reset form
             setFormData({
                 issueType: 'Overflowing Bin',
-                binId: '',
                 description: ''
             });
             setImage(null);
@@ -98,82 +124,96 @@ const ReportIssue = () => {
                 </div>
 
                 <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label htmlFor="issueType">Issue Type</label>
-                        <select
-                            id="issueType"
-                            name="issueType"
-                            value={formData.issueType}
-                            onChange={handletextChange}
-                        >
-                            <option value="Overflowing Bin">Overflowing Bin</option>
-                            <option value="Damaged Bin">Damaged Bin</option>
-                            <option value="Waste Spilled Nearby">Waste Spilled Nearby</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
+                    
+                    {/* CAMERA / UPLOAD FIRST */}
+                    <div className="form-group" style={{ marginBottom: preview ? '1rem' : '0' }}>
+                        <label style={{ fontSize: '1.2rem', textAlign: 'center', display: 'block', marginBottom: '15px' }}>
+                            {preview ? "Proof Image Attached" : "Step 1: Capture the Issue"}
+                        </label>
+                        {!preview && (
+                            <div className="file-input-buttons" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                <label htmlFor="cameraInput" className="btn-file-input" style={{ padding: '15px', fontSize: '1.2rem', backgroundColor: 'var(--primary-color)', color: 'white', display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                                    <FaCloudUploadAlt /> Take Photo (Camera)
+                                </label>
+                                <input
+                                    type="file"
+                                    id="cameraInput"
+                                    accept="image/*"
+                                    capture="environment"
+                                    onChange={handleImageChange}
+                                    style={{ display: 'none' }}
+                                />
 
-                    <div className="form-group">
-                        <label htmlFor="binId">Bin ID (Optional)</label>
-                        <input
-                            type="text"
-                            id="binId"
-                            name="binId"
-                            value={formData.binId}
-                            onChange={handletextChange}
-                            placeholder="Enter Bin ID (e.g., BIN-123)"
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label htmlFor="description">Description (Optional)</label>
-                        <textarea
-                            id="description"
-                            name="description"
-                            value={formData.description}
-                            onChange={handletextChange}
-                            rows="4"
-                            placeholder="Describe the issue..."
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label>Upload Proof Image</label>
-                        <div className="file-input-buttons">
-                            <label htmlFor="cameraInput" className="btn-file-input">
-                                <FaCloudUploadAlt /> Take Photo
-                            </label>
-                            <input
-                                type="file"
-                                id="cameraInput"
-                                accept="image/*"
-                                capture="environment"
-                                onChange={handleImageChange}
-                                style={{ display: 'none' }}
-                            />
-
-                            <label htmlFor="galleryInput" className="btn-file-input">
-                                <FaCloudUploadAlt /> Upload from Gallery
-                            </label>
-                            <input
-                                type="file"
-                                id="galleryInput"
-                                accept="image/*"
-                                onChange={handleImageChange}
-                                style={{ display: 'none' }}
-                            />
-                        </div>
+                                <label htmlFor="galleryInput" className="btn-file-input" style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                                    <FaCloudUploadAlt /> Upload from Gallery
+                                </label>
+                                <input
+                                    type="file"
+                                    id="galleryInput"
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                    style={{ display: 'none' }}
+                                />
+                            </div>
+                        )}
 
                         {preview && (
-                            <div className="image-preview-container">
+                            <div className="image-preview-container" style={{ position: 'relative' }}>
                                 <img src={preview} alt="Evidence Preview" className="image-preview" />
+                                <button 
+                                    type="button" 
+                                    onClick={() => { setImage(null); setPreview(null); }}
+                                    style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(255,0,0,0.8)', color: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer' }}
+                                >
+                                    X
+                                </button>
                             </div>
                         )}
                     </div>
 
-                    <button type="submit" className="btn btn-primary btn-submit">
-                        Submit Report
-                    </button>
+                    {/* REST OF FORM APPEARS ONLY AFTER IMAGE IS SELECTED */}
+                    {preview && (
+                        <div className="fade-in">
+                            <div className="form-group">
+                                <label htmlFor="issueType">Step 2: Issue Type</label>
+                                <select
+                                    id="issueType"
+                                    name="issueType"
+                                    value={formData.issueType}
+                                    onChange={handletextChange}
+                                >
+                                    <option value="Overflowing Bin">Overflowing Bin</option>
+                                    <option value="Damaged Bin">Damaged Bin</option>
+                                    <option value="Waste Spilled Nearby">Waste Spilled Nearby</option>
+                                    <option value="Electricity">Electricity</option>
+                                    <option value="Drainage">Drainage</option>
+                                    <option value="Pothole">Pothole</option>
+                                    <option value="Streetlight Issue">Streetlight Issue</option>
+                                    <option value="Water Leakage">Water Leakage</option>
+                                    <option value="Air Quality">Air Quality</option>
+                                    <option value="Traffic">Traffic</option>
+                                    <option value="Fallen Tree">Fallen Tree</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="description">Step 3: Description (Optional)</label>
+                                <textarea
+                                    id="description"
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handletextChange}
+                                    rows="3"
+                                    placeholder="Describe the issue..."
+                                />
+                            </div>
+
+                            <button type="submit" className="btn btn-primary btn-submit" style={{ marginTop: '20px' }}>
+                                Submit Report
+                            </button>
+                        </div>
+                    )}
                 </form>
             </div>
         </div>

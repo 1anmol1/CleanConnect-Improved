@@ -126,6 +126,11 @@
     border-bottom: 3px solid var(--primary-color);
   }
 
+  .logout-mobile-btn-absolute {
+    display: inline-flex !important;
+    align-items: center;
+  }
+
   /* Add padding to the content area on mobile */
   .profile-content {
     padding: 1.5rem;

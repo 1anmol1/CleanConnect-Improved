@@ -78,7 +78,7 @@ export const sendResolutionNotification = asyncHandler(async (req, res) => {
 
   const citizen = complaint.reportedBy;
   const linkToken = '__LINK_TO_COMPLAINT_HISTORY__';
-  const message = `Your report for Bin ID ${complaint.binId || 'N/A'} has been 'Verified'. Please check your ${linkToken} to provide feedback. Proof Image: ${complaint.resolutionImageUrl || ''}`;
+  const message = `Your report for '${complaint.issueType}' has been 'Verified'. Please check your ${linkToken} to provide feedback. Proof Image: ${complaint.resolutionImageUrl || ''}`;
 
   await Notification.create({ user: citizen._id, title: `Update on: ${complaint.issueType}`, message, type: 'Resolution' });
 

@@ -67,7 +67,7 @@ const WorkerProgress = () => {
   // If the chart library is ready, destructure the components
   const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = isChartReady ? window.Recharts : {};
 
-  const chartData = selectedWorker ? selectedWorker.resolutions.map((res, index) => ({
+  const chartData = selectedWorker?.resolutions ? selectedWorker.resolutions.map((res, index) => ({
     name: index + 1,
     time: res.resolutionTimeMinutes,
     issueType: res.issueType,
@@ -111,7 +111,7 @@ const WorkerProgress = () => {
 
           <div className="progress-table-container card">
             <h3>Worker Rankings</h3>
-            <table className="progress-table">
+            <table className="progress-table responsive-table">
               <thead>
                 <tr>
                   <th>Rank</th>
@@ -127,10 +127,10 @@ const WorkerProgress = () => {
                     className={selectedWorker?.workerId === worker.workerId ? 'selected' : ''}
                     onClick={() => setSelectedWorker(worker)}
                   >
-                    <td>{index + 1}</td>
-                    <td>{worker.workerName}</td>
-                    <td>{worker.complaintsSolved}</td>
-                    <td className="resolution-time">{worker.averageResolutionTime.toFixed(0)} mins</td>
+                    <td data-label="Rank">{index + 1}</td>
+                    <td data-label="Worker Name">{worker.workerName}</td>
+                    <td data-label="Complaints Solved">{worker.complaintsSolved}</td>
+                    <td data-label="Avg. Resolution Time" className="resolution-time">{worker.averageResolutionTime.toFixed(0)} mins</td>
                   </tr>
                 ))}
               </tbody>

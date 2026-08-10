@@ -12,7 +12,9 @@ import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
 // --- PUBLIC PAGES ---
 import Home from './pages/Home/Home.jsx';
 import Login from './pages/Login/Login.jsx';
-import OfficerProgress from './pages/Public/OfficerProgress/OfficerProgress.jsx'; // <-- Import the new public page
+import OfficerProgress from './pages/Public/OfficerProgress/OfficerProgress.jsx'; 
+import PrivacyPolicy from './pages/Public/PrivacyPolicy.jsx';
+import TermsAndConditions from './pages/Public/TermsAndConditions.jsx';
 
 // --- CITIZEN PORTAL PAGES ---
 import CitizenDashboard from './pages/Citizen/Dashboard/CitizenDashboard.jsx';
@@ -68,7 +70,9 @@ function App() {
           {/* PUBLIC ROUTES */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/officer-progress" element={<OfficerProgress />} /> {/* <-- ADD THIS NEW PUBLIC ROUTE */}
+          <Route path="/officer-progress" element={<OfficerProgress />} /> 
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsAndConditions />} />
 
           {/* PROTECTED ROUTES */}
           <Route element={<ProtectedRoute allowedRoles={['Citizen']} />}>

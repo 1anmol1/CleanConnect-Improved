@@ -140,7 +140,18 @@ const Chatbot = ({ isOpen, setIsOpen, initialMessage, clearInitialMessage }) => 
   useEffect(() => {
     const handleOutsideClick = (e) => { if (isOpen && chatbotRef.current && !chatbotRef.current.contains(e.target) && !e.target.closest('.chatbot-toggler')) setIsOpen(false); };
     document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
+    
+    // Scroll lock for background when modal is open
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.body.style.overflow = 'unset';
+    };
   }, [isOpen]);
 
   useEffect(() => {

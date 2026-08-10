@@ -7,6 +7,7 @@
 .complaint-table-container {
   overflow-x: auto;
   background: white;
+  max-width: 100%;
 }
 
 .complaint-table {

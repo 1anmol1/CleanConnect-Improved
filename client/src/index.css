@@ -52,6 +52,8 @@ main {
 html {
   font-size: var(--font-size-base);
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 body {
@@ -61,6 +63,9 @@ body {
   background-color: var(--background-color);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
 }
 
 /* 4. TYPOGRAPHY SCALE */
@@ -234,4 +239,69 @@ input:focus, select:focus, textarea:focus {
 .leaflet-popup-content p {
   margin: 0.25rem 0;
   font-size: 0.9rem;
+}
+
+/* Global Mobile Logout Button Style */
+@media screen and (max-width: 960px) {
+  .logout-mobile-btn-absolute {
+    display: inline-flex !important;
+    align-items: center;
+  }
+}
+
+/* --- Global Responsive Table Styles (Mobile) --- */
+@media screen and (max-width: 960px) {
+  .responsive-table {
+    display: block;
+    width: 100%;
+  }
+  .responsive-table thead, .responsive-table tbody, .responsive-table th, .responsive-table td, .responsive-table tr {
+    display: block;
+  }
+  .responsive-table thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  .responsive-table tr {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+    background: white;
+    padding: 10px;
+    box-shadow: 0 2px 4px var(--shadow-color);
+  }
+  .responsive-table td {
+    border: none;
+    border-bottom: 1px solid #eee;
+    position: relative;
+    padding-left: 45% !important;
+    text-align: right !important;
+    white-space: normal !important;
+    min-height: 40px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  .responsive-table td:last-child {
+    border-bottom: 0;
+  }
+  .responsive-table td:before {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    width: 40%;
+    padding-right: 10px;
+    white-space: nowrap;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-color-light);
+    content: attr(data-label);
+  }
+  /* Fix specific cell layouts for mobile */
+  .responsive-table td.priority-cell,
+  .responsive-table td.status-action-cell {
+    justify-content: flex-end;
+  }
 }

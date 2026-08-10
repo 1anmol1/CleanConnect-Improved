@@ -20,15 +20,14 @@ const Footer = () => {
           <ul>
             <li><Link to="/citizen/dashboard">Citizen Portal</Link></li>
             <li><Link to="/privacy">Privacy Policy</Link></li>
+            <li><Link to="/terms">Terms & Conditions</Link></li>
           </ul>
         </div>
         <div className="footer-section social">
-          <h4>Follow Us</h4>
-          <div className="social-icons">
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter"><FaXTwitter /></a>
-            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><FaFacebook /></a>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><FaLinkedin /></a>
-          </div>
+          <h4>Credits</h4>
+          <p style={{ marginTop: '10px' }}>
+            Project by: <a href="https://anmol-patil-portfolio.vercel.app/" target="_blank" rel="noopener noreferrer" style={{ color: '#4CAF50', textDecoration: 'none' }}>Anmol Patil</a>
+          </p>
         </div>
       </div>
       <div className="footer-bottom">

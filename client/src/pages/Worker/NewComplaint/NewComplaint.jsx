@@ -82,37 +82,46 @@ const NewComplaint = () => {
 
       <div className="form-card-container">
         <form onSubmit={handleSubmit} className="styled-form">
-          <div className="form-group">
-            <label htmlFor="issueType">Type of Issue</label>
-            <select id="issueType" name="issueType" value={issueType} onChange={handleIssueChange} required>
-              <option value="">-- Select an issue --</option>
-              <option value="Roadblock">Roadblock</option>
-              <option value="Damaged Bin">Damaged Bin</option>
-              <option value="Public Waste Spill">Public Waste Spill</option>
-              <option value="Other">Other</option>
-            </select>
+
+          {/* CAMERA / UPLOAD FIRST */}
+          <div className="form-group" style={{ marginBottom: formData.photo ? '1rem' : '0' }}>
+            <label style={{ fontSize: '1.2rem', textAlign: 'center', display: 'block', marginBottom: '15px' }}>
+                {formData.photo ? "Photo Attached" : "Step 1: Upload Photo"}
+            </label>
+            <input type="file" id="photo" name="photo" onChange={handleFileChange} accept="image/*" style={{ display: 'block', margin: '0 auto' }} />
           </div>
 
-          {issueType === 'Damaged Bin' && (
-            <div className="form-group">
-              <label htmlFor="binId">Bin ID (if applicable)</label>
-              <input type="text" id="binId" name="binId" value={formData.binId} onChange={handleChange} placeholder="e.g., PUNE-KTD-01" />
+          {/* REST OF FORM */}
+          {formData.photo && (
+            <div className="fade-in">
+              <div className="form-group">
+                <label htmlFor="issueType">Type of Issue</label>
+                <select id="issueType" name="issueType" value={issueType} onChange={handleIssueChange} required>
+                  <option value="">-- Select an issue --</option>
+                  <option value="Roadblock">Roadblock</option>
+                  <option value="Damaged Bin">Damaged Bin</option>
+                  <option value="Public Waste Spill">Public Waste Spill</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              {issueType === 'Damaged Bin' && (
+                <div className="form-group">
+                  <label htmlFor="binId">Bin ID (if applicable)</label>
+                  <input type="text" id="binId" name="binId" value={formData.binId} onChange={handleChange} placeholder="e.g., PUNE-KTD-01" />
+                </div>
+              )}
+              
+              <div className="form-group">
+                <label htmlFor="description">Description</label>
+                <textarea id="description" name="description" value={formData.description} onChange={handleChange} rows="4" placeholder="Provide more details and location..." required></textarea>
+              </div>
+
+              <button type="submit" className="btn btn-primary btn-submit" disabled={loading} style={{ marginTop: '20px' }}>
+                {loading ? 'Submitting...' : <><FaPaperPlane /> Submit Report</>}
+              </button>
             </div>
           )}
-          
-          <div className="form-group">
-            <label htmlFor="description">Description</label>
-            <textarea id="description" name="description" value={formData.description} onChange={handleChange} rows="4" placeholder="Provide more details and location..." required></textarea>
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="photo">Upload Photo</label>
-            <input type="file" id="photo" name="photo" onChange={handleFileChange} accept="image/*" />
-          </div>
-
-          <button type="submit" className="btn btn-primary btn-submit" disabled={loading}>
-            {loading ? 'Submitting...' : <><FaPaperPlane /> Submit Report</>}
-          </button>
         </form>
       </div>
     </div>

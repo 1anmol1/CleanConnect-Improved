@@ -26,6 +26,11 @@ const binSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  category: {
+    type: String,
+    enum: ['Waste', 'Electricity', 'Drainage', 'Water Leakage', 'Air Quality', 'Traffic', 'Other'],
+    default: 'Waste',
+  },
   isSmartBin: {
     type: Boolean,
     default: true,

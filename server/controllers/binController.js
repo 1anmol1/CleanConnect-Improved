@@ -8,7 +8,7 @@ import User from '../models/User.js'; // 1. Import the User model
  * @access  Private (Officer)
  */
 export const createBin = asyncHandler(async (req, res) => {
-  const { binId, coordinates, area, isSmartBin, parentBin } = req.body;
+  const { binId, coordinates, area, isSmartBin, parentBin, category } = req.body;
   const city = req.user.city;
 
   const newBin = await Bin.create({
@@ -18,6 +18,7 @@ export const createBin = asyncHandler(async (req, res) => {
     area,
     isSmartBin,
     parentBin: parentBin || null,
+    category: category || 'Waste',
   });
   res.status(201).json({ success: true, data: newBin });
 });

@@ -99,7 +99,7 @@ export const getComplaints = asyncHandler(async (req, res) => {
  * @access  Private (Citizen)
  */
 export const createComplaint = asyncHandler(async (req, res) => {
-  const { issueType, binId, description } = req.body;
+  const { issueType, lat, lng, description } = req.body;
 
   if (!req.file) {
     res.status(400);
@@ -108,7 +108,10 @@ export const createComplaint = asyncHandler(async (req, res) => {
 
   const complaint = await Complaint.create({
     issueType,
-    binId,
+    location: {
+      lat: parseFloat(lat),
+      lng: parseFloat(lng)
+    },
     description,
     reportedBy: req.user._id,
     city: req.user.city,
@@ -184,8 +187,8 @@ export const voteOnComplaint = asyncHandler(async (req, res) => {
       }
     }
   
-    await complaint.save();
-    res.json({ success: true, data: complaint });
+    await complaint.save({ validateModifiedOnly: true });
+    res.json({ success: true, data: complaint });
 });
 
 /**
@@ -194,14 +197,15 @@ export const voteOnComplaint = asyncHandler(async (req, res) => {
  * @access  Private (Officer)
  */
 export const assignComplaint = asyncHandler(async (req, res) => {
-  const { workerId } = req.body;
-  const complaint = await Complaint.findById(req.params.id);
-  if (!complaint) { res.status(404); throw new Error('Complaint not found'); }
+  const { workerId } = req.body;
+  const complaint = await Complaint.findByIdAndUpdate(
+    req.params.id,
+    { assignedTo: workerId, status: 'Assigned' },
+    { new: true, runValidators: true } // Only validates modified paths
+  );
+  if (!complaint) { res.status(404); throw new Error('Complaint not found'); }
 
-  complaint.assignedTo = workerId;
-  complaint.status = 'Assigned';
-  await complaint.save();
-  res.json({ success: true, message: 'Complaint assigned successfully.' });
+  res.json({ success: true, message: 'Complaint assigned successfully.' });
 });
 
 /**
@@ -218,8 +222,8 @@ export const resolveComplaint = asyncHandler(async (req, res) => {
     complaint.status = 'Resolved';
     complaint.resolvedAt = Date.now();
     complaint.resolutionImageUrl = req.file ? `/uploads/${req.file.filename}` : null;
-    await complaint.save();
-    res.json({ success: true, message: 'Complaint marked as resolved.' });
+    await complaint.save({ validateModifiedOnly: true });
+    res.json({ success: true, message: 'Complaint marked as resolved.' });
 });
 
 /**
@@ -234,8 +238,8 @@ export const verifyAndNotifyComplaint = asyncHandler(async (req, res) => {
 
   if (status === 'Rejected') {
     complaint.status = 'Reopened';
-    await complaint.save();
-    return res.json({ success: true, message: 'Resolution rejected and complaint reopened.' });
+    await complaint.save({ validateModifiedOnly: true });
+    return res.json({ success: true, message: 'Resolution rejected and complaint reopened.' });
   }
 
   if (status === 'Approved') {
@@ -245,7 +249,7 @@ export const verifyAndNotifyComplaint = asyncHandler(async (req, res) => {
     if (complaint.reportedBy) {
       const citizen = complaint.reportedBy;
       const linkToken = '__LINK_TO_COMPLAINT_HISTORY__';
-      const message = `Your report for Bin ID ${complaint.binId || 'N/A'} has been 'Verified'. Please check your ${linkToken} to provide feedback. Proof Image: ${complaint.resolutionImageUrl || ''}`;
+      const message = `Your report for '${complaint.issueType}' has been 'Verified'. Please check your ${linkToken} to provide feedback. Proof Image: ${complaint.resolutionImageUrl || ''}`;
       
       await Notification.create({
         user: citizen._id,
@@ -257,8 +261,8 @@ export const verifyAndNotifyComplaint = asyncHandler(async (req, res) => {
       complaint.notifiedAt = Date.now();
     }
 
-    await complaint.save();
-    res.json({ success: true, message: 'Resolution approved and citizen has been notified.' });
+    await complaint.save({ validateModifiedOnly: true });
+    res.json({ success: true, message: 'Resolution approved and citizen has been notified.' });
   } else {
     res.status(400); throw new Error('Invalid status provided.');
   }
@@ -278,8 +282,8 @@ export const closeComplaint = asyncHandler(async (req, res) => {
     }
 
     complaint.status = 'Closed';
-    await complaint.save();
-    res.json({ success: true, message: 'Complaint closed and rewards issued.' });
+    await complaint.save({ validateModifiedOnly: true });
+    res.json({ success: true, message: 'Complaint closed and rewards issued.' });
 });
 
 /**
@@ -353,9 +357,9 @@ export const addFeedbackToComplaint = asyncHandler(async (req, res) => {
   
   complaint.status = 'FeedbackProvided';
 
-  await complaint.save();
+  await complaint.save({ validateModifiedOnly: true });
 
-  res.status(200).json({ success: true, message: 'Thank you for your feedback!' });
+  res.status(200).json({ success: true, message: 'Thank you for your feedback!' });
 });
 
 /**
@@ -364,41 +368,58 @@ export const addFeedbackToComplaint = asyncHandler(async (req, res) => {
  * @access  Private (Officer)
  */
 export const getWorkerProgress = asyncHandler(async (req, res) => {
-  if (!req.user || !req.user.city) {
-    res.status(400);
-    throw new Error('User city not found. Cannot fetch progress.');
-  }
+  if (!req.user || !req.user.city) {
+    res.status(400);
+    throw new Error('User city not found. Cannot fetch progress.');
+  }
 
-  const resolvedComplaints = await Complaint.find({
-    city: req.user.city,
-    status: { $in: ['Resolved', 'Verified', 'FeedbackProvided', 'Closed'] },
-    assignedTo: { $exists: true },
-    resolvedAt: { $exists: true }
-  })
-    .populate('assignedTo', 'name')
-    .sort({ resolvedAt: -1 });
+  const resolvedComplaints = await Complaint.find({
+    city: req.user.city,
+    status: { $in: ['Resolved', 'Verified', 'FeedbackProvided', 'Closed'] },
+    assignedTo: { $exists: true },
+    resolvedAt: { $exists: true }
+  })
+    .populate('assignedTo', 'name')
+    .sort({ resolvedAt: -1 });
 
-  const progressReport = resolvedComplaints.map(complaint => {
-    const timeAssigned = new Date(complaint.createdAt).getTime();
-    const timeResolved = new Date(complaint.resolvedAt).getTime();
-    const resolutionTimeMs = timeResolved - timeAssigned;
+  // Group by worker
+  const workersMap = {};
+  resolvedComplaints.forEach(complaint => {
+    if (!complaint.assignedTo) return;
+    const workerId = complaint.assignedTo._id.toString();
+    const workerName = complaint.assignedTo.name;
+    
+    const timeAssigned = new Date(complaint.createdAt).getTime();
+    const timeResolved = new Date(complaint.resolvedAt).getTime();
+    const resolutionTimeMinutes = (timeResolved - timeAssigned) / (1000 * 60);
 
-    const hours = Math.floor(resolutionTimeMs / (1000 * 60 * 60));
-    const minutes = Math.floor((resolutionTimeMs % (1000 * 60 * 60)) / (1000 * 60));
-    const resolutionTime = `${hours}h ${minutes}m`;
+    if (!workersMap[workerId]) {
+      workersMap[workerId] = {
+        workerId,
+        workerName,
+        complaintsSolved: 0,
+        totalTime: 0,
+        resolutions: []
+      };
+    }
+    
+    workersMap[workerId].complaintsSolved += 1;
+    workersMap[workerId].totalTime += resolutionTimeMinutes;
+    workersMap[workerId].resolutions.push({
+      issueType: complaint.issueType,
+      resolutionTimeMinutes
+    });
+  });
 
-    return {
-      _id: complaint._id,
-      binId: complaint.binId,
-      issueType: complaint.issueType,
-      workerName: complaint.assignedTo ? complaint.assignedTo.name : 'Unknown',
-      assignedAt: complaint.createdAt,
-      resolvedAt: complaint.resolvedAt,
-      resolutionTime,
-    };
-  });
+  const progressReport = Object.values(workersMap).map(w => ({
+    ...w,
+    averageResolutionTime: w.totalTime / w.complaintsSolved
+  }));
 
-  res.json({ success: true, data: progressReport });
+  // Sort by fastest average resolution time
+  progressReport.sort((a, b) => a.averageResolutionTime - b.averageResolutionTime);
+
+  res.json({ success: true, data: progressReport });
 });
 
 /**

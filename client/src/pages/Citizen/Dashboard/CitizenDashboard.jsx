@@ -15,7 +15,8 @@ const CitizenDashboard = () => {
   useScrollToTop();
   const { user } = useAuth();
   const [bins, setBins] = useState([]);
-  const [vehicles, setVehicles] = useState([]); // New state for vehicles
+  const [complaints, setComplaints] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
   const { location: userLocation } = useWorkerLocation(); // Gets the user's "You are here" location
   const [loading, setLoading] = useState(true);
   
@@ -35,17 +36,27 @@ const CitizenDashboard = () => {
     const fetchDataAndAnimate = async () => {
       try {
         const token = localStorage.getItem('token');
-        const { data } = await axios.get('/bins', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const [binRes, complaintRes] = await Promise.all([
+          axios.get('/bins', { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get('/complaints', { headers: { Authorization: `Bearer ${token}` } })
+        ]);
 
-        // THE FIX: Correctly destructure the response from the backend
-        const fetchedBins = data.data.bins || [];
-        const initialVehicles = data.data.vehicles || [];
+        const fetchedBins = binRes.data.data.bins || [];
+        const initialVehicles = binRes.data.data.vehicles || [];
+        let fetchedComplaints = complaintRes.data.data || [];
 
-        const smartBins = fetchedBins.filter(bin => bin.isSmartBin);
-        setBins(smartBins);
-        setVehicles(initialVehicles); // Set the initial positions
+        // Phase 2: Show all bins (removed isSmartBin filter)
+        setBins(fetchedBins);
+        
+        // Phase 2: Always inject dummy issues to keep the map populated for demos
+        const dummyComplaints = [
+            { _id: 'dummy1', issueType: 'Overflowing Bin', priority: 'High', location: { lat: 18.51, lng: 73.80 } },
+            { _id: 'dummy2', issueType: 'Pothole', priority: 'Medium', location: { lat: 18.50, lng: 73.81 } },
+            { _id: 'dummy3', issueType: 'Fallen Tree', priority: 'Emergency', location: { lat: 18.52, lng: 73.79 } }
+        ];
+        
+        setComplaints([...fetchedComplaints, ...dummyComplaints]);
+        setVehicles(initialVehicles);
 
         // --- DUMMY MOVING VEHICLE SIMULATION ---
         if (isLoaded && initialVehicles.length > 0) {
@@ -119,7 +130,7 @@ const CitizenDashboard = () => {
       <header className="page-header"
               style={{ backgroundImage: `url(${dashboardHeroImage})` }}>
         <h1>Welcome, {user?.name}!</h1>
-        <p>Here's a live overview of smart bins and vehicles in your area.</p>
+        <p>Here's a live overview of smart sensors, issues, and vehicles in your area.</p>
       </header>
       <div className="dashboard-content card">
         <h3><FaMapMarkerAlt /> Live City Map</h3>
@@ -127,6 +138,7 @@ const CitizenDashboard = () => {
           <MapComponent
             center={mapCenter}
             markers={bins}
+            complaints={complaints}
             vehicles={vehicles} // Pass the live vehicle data
             userLocation={userLocation} // Pass the "You are here" location
           />

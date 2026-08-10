@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import useScrollToTop from '../../../hooks/useScrollToTop';
-import { FaTrophy, FaHistory, FaUserEdit } from 'react-icons/fa';
+import { FaTrophy, FaHistory, FaUserEdit, FaSignOutAlt } from 'react-icons/fa';
+import { useAuth } from '../../../hooks/useAuth';
 import ComplaintHistory from '../../../components/Profile/ComplaintHistory';
 import ProfileOverview from '../../../components/Profile/ProfileOverview';
 import './Profile.css';
 
 const Profile = () => {
   useScrollToTop();
+  const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
 
   return (
@@ -36,8 +38,32 @@ const Profile = () => {
           <button disabled>
             <FaUserEdit /> Edit Profile (Soon)
           </button>
+          <button onClick={logout} style={{ color: 'var(--nav-danger-color)', marginTop: 'auto' }}>
+            <FaSignOutAlt /> Logout
+          </button>
         </nav>
       </aside>
+
+      {/* Mobile Logout Button positioned top-right */}
+      <button 
+        onClick={logout} 
+        className="logout-mobile-btn-absolute" 
+        style={{ 
+          display: 'none', 
+          position: 'absolute', 
+          top: '90px', 
+          right: '20px', 
+          backgroundColor: '#fff', 
+          color: 'var(--nav-danger-color)', 
+          border: '1px solid var(--nav-danger-color)', 
+          padding: '8px 15px', 
+          borderRadius: '6px', 
+          fontSize: '0.9rem', 
+          zIndex: 10 
+        }}
+      >
+        <FaSignOutAlt style={{ marginRight: '5px' }} /> Logout
+      </button>
 
       {/* --- THE FIX IS HERE --- */}
       {/* Both components are always rendered. CSS controls which one is visible. */}

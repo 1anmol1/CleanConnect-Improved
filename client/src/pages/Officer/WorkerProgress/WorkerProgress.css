@@ -32,6 +32,7 @@
 .progress-table-container {
   padding: 0;
   overflow-x: auto;
+  max-width: 100%;
 }
 
 .progress-table-container h3 {

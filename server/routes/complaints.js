@@ -24,7 +24,7 @@ router.route('/officer-progress').get(getOfficerProgress); // <-- THIS IS THE MI
 
 // --- PROTECTED ROUTES ---
 router.route('/')
-  .get(protect, authorize('Officer'), getComplaints)
+  .get(protect, authorize('Officer', 'Citizen'), getComplaints)
   .post(protect, authorize('Citizen'), upload.single('photo'), createComplaint);
 
 router.route('/my-history').get(protect, authorize('Citizen'), getMyComplaints);
