@@ -91,18 +91,31 @@ Also remember to give shorter answer responses of about maximum of 30 words.
  * Generates a response for the chatbot using the predefined system prompt.
  */
 export async function generateChatResponse(userMessage) {
-  // Use the correct, updated model name 'gemini-1.0-pro'
-  const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
   try {
-    const chat = model.startChat({
-      history: [
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+    
+    const payload = {
+      contents: [
         { role: "user", parts: [{ text: systemPrompt }] },
         { role: "model", parts: [{ text: "Understood. I am ready to assist." }] },
-      ],
+        { role: "user", parts: [{ text: userMessage }] }
+      ]
+    };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     });
 
-    const result = await chat.sendMessage(userMessage);
-    return result.response.text();
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Gemini API Error Response:", data);
+      throw new Error(data.error?.message || "Failed to fetch from Gemini API");
+    }
+
+    return data.candidates[0].content.parts[0].text;
   } catch (error) {
     console.error("Error from Gemini API:", error);
     return "I'm sorry, I'm having trouble connecting to my AI brain right now.";
@@ -114,7 +127,6 @@ export async function generateChatResponse(userMessage) {
  * (For Future Use) Generates an optimized collection route.
  */
 export async function getOptimalRoute(bins, startPoint) {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
   const prompt = `
     You are a logistics and route optimization expert...
     Given a starting depot at location ${JSON.stringify(startPoint)} and bins: ${JSON.stringify(bins)}.
@@ -123,8 +135,27 @@ export async function getOptimalRoute(bins, startPoint) {
   `;
 
   try {
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+    
+    const payload = {
+      contents: [
+        { role: "user", parts: [{ text: prompt }] }
+      ]
+    };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error?.message || "Failed to fetch from Gemini API");
+    }
+
+    const text = data.candidates[0].content.parts[0].text;
     const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
     return JSON.parse(jsonString);
   } catch (error) {
